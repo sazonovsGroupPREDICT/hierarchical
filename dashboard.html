@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Results dashboard for hierarchical IBD screening pipeline analysis. View ROC curves, cost breakdowns, and performance metrics.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="IBD Screening Pipeline Dashboard">
+    <meta property="og:description" content="Results dashboard for hierarchical IBD screening pipeline analysis. View ROC curves, cost breakdowns, and performance metrics.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/sazonovs/hierarchical/main/preview.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="IBD Screening Pipeline Dashboard">
+    <meta name="twitter:description" content="Results dashboard for hierarchical IBD screening pipeline analysis. View ROC curves, cost breakdowns, and performance metrics.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/sazonovs/hierarchical/main/preview.png">
+
+    <title>Pipeline Results Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪡</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #1a1a2e;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: #3b82f6;
+        }
+
+        header {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+
+        .header-left .subtitle {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 32px;
+        }
+
+        .header-stat {
+            text-align: right;
+        }
+
+        .header-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-stat-value.green { color: #16a34a; }
+        .header-stat-value.amber { color: #d97706; }
+        .header-stat-value.blue { color: #2563eb; }
+
+        .header-stat-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px 20px;
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Pipeline Flow Diagram */
+        .pipeline-flow {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 16px 0;
+            overflow-x: auto;
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+            position: relative;
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            padding: 0 8px;
+            padding-top: 18px;
+            flex-shrink: 0;
+        }
+
+        .flow-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            border: 2px solid;
+            background: #fff;
+            position: relative;
+            z-index: 1;
+        }
+
+        .flow-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            text-align: center;
+            margin-bottom: 6px;
+            max-width: 90px;
+        }
+
+        .flow-metrics {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.7rem;
+            text-align: center;
+        }
+
+        .flow-metric-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .flow-metric {
+            color: #64748b;
+            font-size: 0.68rem;
+            letter-spacing: -0.01em;
+        }
+
+        .flow-metric-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .flow-n-label {
+            font-size: 0.6rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .flow-n {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .flow-cost {
+            color: #0891b2;
+            font-weight: 600;
+            font-size: 0.72rem;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Scientific chart styling */
+        .chart-container {
+            position: relative;
+            height: 220px;
+            background: #fff;
+        }
+
+        .chart-container.roc-container {
+            width: 220px;
+            height: 220px;
+            margin: 0 auto;
+        }
+
+        .chart-container.cost-chart-container {
+            height: 160px;
+        }
+
+        .cost-total {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0891b2;
+            margin-top: 8px;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Confusion matrix - academic style */
+        .confusion-matrix {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr;
+            gap: 2px;
+            max-width: 260px;
+            margin: 0 auto;
+            font-size: 0.8rem;
+        }
+
+        .cm-corner { background: transparent; }
+
+        .cm-header {
+            background: #f1f5f9;
+            padding: 6px 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.7rem;
+        }
+
+        .cm-cell {
+            padding: 12px 10px;
+            text-align: center;
+        }
+
+        .cm-cell.tp { background: #dcfce7; color: #166534; }
+        .cm-cell.fp { background: #fee2e2; color: #991b1b; }
+        .cm-cell.fn { background: #fef3c7; color: #92400e; }
+        .cm-cell.tn { background: #f1f5f9; color: #475569; }
+
+        .cm-cell-value {
+            font-size: 1rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .cm-cell-label {
+            font-size: 0.6rem;
+            color: inherit;
+            opacity: 0.8;
+        }
+
+        /* Metrics table */
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .metrics-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .metrics-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Cascade table */
+        .cascade-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .cascade-table th {
+            text-align: left;
+            padding: 8px 10px;
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        .cascade-table th.num {
+            text-align: right;
+        }
+
+        .cascade-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .cascade-table td.num {
+            text-align: right;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .cascade-table tbody tr:last-child {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+
+        .cascade-table tbody tr:last-child td {
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .layer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .layer-icon {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .bar-cell {
+            width: 120px;
+        }
+
+        .mini-bar {
+            height: 14px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .mini-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+
+        .mono {
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Legend */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        /* No data */
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .no-data h2 {
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <a href="index.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Pipeline Builder
+        </a>
+
+        <div id="main-content">
+            <div class="no-data">
+                <h2>No Pipeline Data</h2>
+                <p>Configure your pipeline in the builder, then return here to see results.</p>
+            </div>
+        </div>
+
+        <footer>
+            Made by the Sazonovs Lab, PREDICT, AAU Copenhagen
+        </footer>
+    </div>
+
+    <script>
+        // Math helpers - exactly matching main page
+        function normalCDF(x) {
+            const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+            const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+            const sign = x < 0 ? -1 : 1;
+            const absX = Math.abs(x) / Math.sqrt(2);
+            const t = 1.0 / (1.0 + p * absX);
+            const erf = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-absX * absX);
+            return 0.5 * (1.0 + sign * erf);
+        }
+
+        function normalPDF(x, mean, std) {
+            return Math.exp(-0.5 * Math.pow((x - mean) / std, 2)) / (std * Math.sqrt(2 * Math.PI));
+        }
+
+        function normalInvCDF(p) {
+            if (p <= 0) return -Infinity;
+            if (p >= 1) return Infinity;
+            const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+                       1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+            const b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+                       6.680131188771972e+01, -1.328068155288572e+01];
+            const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+                       -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+            const d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+            const pLow = 0.02425, pHigh = 1 - pLow;
+            let q, r;
+            if (p < pLow) {
+                q = Math.sqrt(-2 * Math.log(p));
+                return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+            } else if (p <= pHigh) {
+                q = p - 0.5; r = q * q;
+                return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+            } else {
+                q = Math.sqrt(-2 * Math.log(1 - p));
+                return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+            }
+        }
+
+        function dPrimeFromAuc(auc) {
+            return Math.sqrt(2) * normalInvCDF(auc);
+        }
+
+        // Calculate equivalent single-test AUC from cumulative sensitivity/specificity
+        function calculateAUCFromSensSpec(sens, spec) {
+            const s = Math.min(0.999, Math.max(0.001, sens));
+            const sp = Math.min(0.999, Math.max(0.001, spec));
+            const dPrime = normalInvCDF(s) + normalInvCDF(sp);
+            return normalCDF(dPrime / Math.sqrt(2));
+        }
+
+        // Exactly matches main page - mixture model
+        function mixtureTailMass(t, pi, dPrime) {
+            // P(S>t) under mixture of controls N(0,1) and cases N(d',1)
+            const tpr = 1 - normalCDF(t - dPrime);
+            const fpr = 1 - normalCDF(t);
+            return pi * tpr + (1 - pi) * fpr;
+        }
+
+        function findThresholdForTopQ(q, pi, dPrime) {
+            if (q <= 0) return Infinity;
+            if (q >= 1) return -Infinity;
+            let lo = -12.0, hi = 12.0;
+            for (let i = 0; i < 120; i++) {
+                const mid = 0.5 * (lo + hi);
+                if (mixtureTailMass(mid, pi, dPrime) > q) lo = mid;
+                else hi = mid;
+            }
+            return 0.5 * (lo + hi);
+        }
+
+        // Exactly matches main page calculateSensSpec
+        function calculateSensSpec(auc, pi, q) {
+            const a = Math.min(0.999999, Math.max(0.500001, auc));
+            const p = Math.min(0.999999, Math.max(0.000001, pi));
+            const qq = Math.min(1, Math.max(0, q));
+
+            if (qq <= 0) return { sensitivity: 0, specificity: 1, fpr: 0 };
+            if (qq >= 1) return { sensitivity: 1, specificity: 0, fpr: 1 };
+
+            const dPrime = dPrimeFromAuc(a);
+            const t = findThresholdForTopQ(qq, p, dPrime);
+            const sensitivity = 1 - normalCDF(t - dPrime);
+            const fpr = 1 - normalCDF(t);
+            const specificity = 1 - fpr;
+            return { sensitivity, specificity, fpr };
+        }
+
+        const iconMap = { 'genetic': '🧬', 'blood': '🩸', 'fecal': '💩', 'omics': '🧫', 'imaging': '📷', 'environment': '🌍', 'demographic': '👥', 'custom': '⚙️' };
+        const colorMap = { 'genetic': '#8b5cf6', 'blood': '#ec4899', 'fecal': '#f97316', 'omics': '#6366f1', 'imaging': '#0891b2', 'environment': '#14b8a6', 'demographic': '#8b5cf6', 'custom': '#10b981' };
+
+        // Exactly matching main page's calculateCosts logic
+        function calculateResults(data) {
+            const { pipeline, population, prevalence, correlations = {} } = data;
+
+            // Helper to get max correlation with previous layers
+            function getMaxCorrelation(layerIdx) {
+                let maxCorr = 0;
+                for (let i = 0; i < layerIdx; i++) {
+                    const key = `${i}-${layerIdx}`;
+                    maxCorr = Math.max(maxCorr, correlations[key] || 0);
+                }
+                return maxCorr;
+            }
+
+            // Debug: log what we received
+            console.log('Dashboard received:', { population, prevalence, pipelineLength: pipeline.length });
+            console.log('Pipeline:', pipeline.map(b => ({ name: b.name, auc: b.auc, cohortPct: b.cohortPct })));
+
+            const totalCases = Math.round(population * prevalence);
+            const totalNonCases = population - totalCases;
+
+            let currentTotal = population;
+            let currentCases = totalCases;
+            let totalCost = 0;
+
+            const stages = [{
+                name: 'Population',
+                n: population,
+                cases: totalCases,
+                nonCases: totalNonCases,
+                prevalence: prevalence,
+                icon: '👥',
+                color: '#3b82f6'
+            }];
+
+            // Exactly matching main page calculateCosts loop
+            for (let layerIdx = 0; layerIdx < pipeline.length; layerIdx++) {
+                const block = pipeline[layerIdx];
+                const cost = block.routinelyAvailable ? 0 : (block.cost || 0);
+                totalCost += currentTotal * cost;
+
+                const pi = currentTotal > 0 ? (currentCases / currentTotal) : 0;
+                const q = (block.cohortPct ?? 0) / 100;
+                const params = calculateSensSpec(block.auc, pi, q);
+
+                let effectiveSens = params.sensitivity;
+                let effectiveFpr = params.fpr;
+
+                // Apply correlation adjustment
+                if (layerIdx > 0) {
+                    const rho = getMaxCorrelation(layerIdx);
+                    if (rho > 0) {
+                        effectiveSens = params.sensitivity + rho * (1 - params.sensitivity);
+                        effectiveFpr = params.fpr + rho * (1 - params.fpr);
+                    }
+                }
+
+                const casesAfter = Math.round(currentCases * effectiveSens);
+                const nonCasesAfter = Math.round((currentTotal - currentCases) * effectiveFpr);
+
+                console.log(`Layer ${block.name}: pi=${pi.toFixed(4)}, q=${q.toFixed(4)}, sens=${params.sensitivity.toFixed(4)}, fpr=${params.fpr.toFixed(4)}`);
+                console.log(`  casesAfter=${casesAfter}, nonCasesAfter=${nonCasesAfter}`);
+
+                stages.push({
+                    name: block.name,
+                    n: casesAfter + nonCasesAfter,
+                    cases: casesAfter,
+                    nonCases: nonCasesAfter,
+                    prevalence: (casesAfter + nonCasesAfter) > 0 ? casesAfter / (casesAfter + nonCasesAfter) : 0,
+                    icon: iconMap[block.type] || '📊',
+                    type: block.type,
+                    color: colorMap[block.type] || '#3b82f6',
+                    auc: block.auc,
+                    cohortPct: block.cohortPct,
+                    sensitivity: effectiveSens,
+                    specificity: 1 - effectiveFpr,
+                    cost: cost,
+                    inputN: currentTotal,
+                    inputCases: currentCases
+                });
+
+                currentCases = casesAfter;
+                currentTotal = casesAfter + nonCasesAfter;
+            }
+
+            const finalTP = currentCases;
+            const finalFP = currentTotal - currentCases;
+            const finalFN = totalCases - currentCases;
+            const finalTN = totalNonCases - finalFP;
+
+            const ppv = currentTotal > 0 ? finalTP / currentTotal : 0;
+            const sensitivity = totalCases > 0 ? finalTP / totalCases : 0;
+            const specificity = totalNonCases > 0 ? finalTN / totalNonCases : 0;
+            const npv = (finalTN + finalFN) > 0 ? finalTN / (finalTN + finalFN) : 0;
+            const enrichment = prevalence > 0 ? ppv / prevalence : 0;
+
+            console.log('Final results:', { finalTP, finalFP, finalFN, finalTN, ppv: (ppv*100).toFixed(1)+'%', sensitivity: (sensitivity*100).toFixed(1)+'%' });
+
+            return {
+                stages, pipeline,
+                finalTP, finalFP, finalFN, finalTN,
+                ppv, sensitivity, specificity, npv, enrichment,
+                totalCost,
+                costPerCase: finalTP > 0 ? totalCost / finalTP : 0,
+                population, prevalence,
+                totalCases, totalNonCases,
+                finalN: currentTotal
+            };
+        }
+
+        function fmt(n) {
+            if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return (n/1e3).toFixed(1) + 'k';
+            return n.toLocaleString();
+        }
+
+        function renderDashboard(data) {
+            const r = calculateResults(data);
+            const container = document.getElementById('main-content');
+
+            container.innerHTML = `
+                <header>
+                    <div class="header-left">
+                        <h1>Screening Pipeline Results</h1>
+                        <div class="subtitle">${r.stages.length - 1}-layer cascade · N = ${fmt(r.population)} · Prevalence ${(r.prevalence * 100).toFixed(2)}%</div>
+                    </div>
+                    <div class="header-stats">
+                        <div class="header-stat">
+                            <div class="header-stat-value green">${(r.ppv * 100).toFixed(1)}%</div>
+                            <div class="header-stat-label">PPV</div>
+                        </div>
+                        <div class="header-stat">
+                            <div class="header-stat-value amber">${(r.sensitivity * 100).toFixed(1)}%</div>
+                            <div class="header-stat-label">Sensitivity</div>
+                        </div>
+                        <div class="header-stat">
+                            <div class="header-stat-value blue">${r.enrichment.toFixed(0)}×</div>
+                            <div class="header-stat-label">Enrichment</div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Pipeline Flow Diagram -->
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-title">Pipeline Flow</div>
+                    <div class="pipeline-flow" id="pipeline-flow"></div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-title">Final Stage Score Distribution</div>
+                        <div class="chart-container">
+                            <canvas id="dist-canvas" class="chart-canvas"></canvas>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item"><div class="legend-dot" style="background: #16a34a;"></div> Detected (TP)</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div> False + (FP)</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div> Missed (FN)</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">ROC Curve (Single-Test Equivalent)</div>
+                        <div class="chart-container roc-container">
+                            <canvas id="roc-canvas" class="chart-canvas"></canvas>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item"><div class="legend-dot" style="background: #2563eb;"></div> AUC = ${calculateAUCFromSensSpec(r.sensitivity, r.specificity).toFixed(3)}</div>
+                            <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div> Operating Point</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card">
+                        <div class="card-title">Confusion Matrix</div>
+                        <div class="confusion-matrix">
+                            <div class="cm-corner"></div>
+                            <div class="cm-header">Pred +</div>
+                            <div class="cm-header">Pred −</div>
+                            <div class="cm-header">Act +</div>
+                            <div class="cm-cell tp"><span class="cm-cell-value">${r.finalTP.toLocaleString()}</span><span class="cm-cell-label">TP</span></div>
+                            <div class="cm-cell fn"><span class="cm-cell-value">${r.finalFN.toLocaleString()}</span><span class="cm-cell-label">FN</span></div>
+                            <div class="cm-header">Act −</div>
+                            <div class="cm-cell fp"><span class="cm-cell-value">${fmt(r.finalFP)}</span><span class="cm-cell-label">FP</span></div>
+                            <div class="cm-cell tn"><span class="cm-cell-value">${fmt(r.finalTN)}</span><span class="cm-cell-label">TN</span></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Performance Metrics</div>
+                        <table class="metrics-table">
+                            <tr><td>Positive Predictive Value</td><td>${(r.ppv * 100).toFixed(2)}%</td></tr>
+                            <tr><td>Negative Predictive Value</td><td>${(r.npv * 100).toFixed(2)}%</td></tr>
+                            <tr><td>Sensitivity (Recall)</td><td>${(r.sensitivity * 100).toFixed(2)}%</td></tr>
+                            <tr><td>Specificity</td><td>${(r.specificity * 100).toFixed(2)}%</td></tr>
+                            <tr><td>Enrichment Factor</td><td>${r.enrichment.toFixed(1)}×</td></tr>
+                        </table>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Cost Breakdown</div>
+                        <div class="chart-container cost-chart-container">
+                            <canvas id="cost-canvas" class="chart-canvas"></canvas>
+                        </div>
+                        <div class="cost-total">Total: €${r.totalCost.toLocaleString()}</div>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card">
+                        <div class="card-title">Cost Details</div>
+                        <table class="metrics-table">
+                            <tr><td>Total Screening Cost</td><td>€${r.totalCost.toLocaleString()}</td></tr>
+                            <tr><td>Cost per Case Found</td><td>€${Math.round(r.costPerCase).toLocaleString()}</td></tr>
+                            <tr><td>Cases Identified</td><td>${r.finalTP.toLocaleString()}</td></tr>
+                            <tr><td>Cases Missed</td><td>${r.finalFN.toLocaleString()}</td></tr>
+                            <tr><td>Final Cohort</td><td>${r.finalN.toLocaleString()}</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Screening Cascade</div>
+                    <table class="cascade-table">
+                        <thead>
+                            <tr>
+                                <th>Layer</th>
+                                <th class="num">AUC</th>
+                                <th class="num">Pass %</th>
+                                <th class="num">Sens</th>
+                                <th class="num">Spec</th>
+                                <th>Remaining</th>
+                                <th class="num">N</th>
+                                <th class="num">Cases</th>
+                                <th class="num">Prev</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cascade-body"></tbody>
+                    </table>
+                </div>
+            `;
+
+            setTimeout(() => {
+                renderPipelineFlow(r);
+                renderDistribution(r);
+                renderROC(r);
+                renderCostChart(r);
+                renderCascade(r);
+            }, 50);
+        }
+
+        function fmtCost(n) {
+            if (n >= 1e6) return '€' + (n/1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return '€' + (n/1e3).toFixed(0) + 'k';
+            return '€' + n.toLocaleString();
+        }
+
+        function renderPipelineFlow(r) {
+            const container = document.getElementById('pipeline-flow');
+            if (!container) return;
+
+            let html = '';
+            r.stages.forEach((s, i) => {
+                const isFirst = i === 0;
+
+                // Add arrow before each step (except first)
+                if (i > 0) {
+                    html += `<div class="flow-arrow">→</div>`;
+                }
+
+                // Calculate step cost (cost per test × number tested)
+                const stepCost = isFirst ? 0 : (s.cost || 0) * (s.inputN || 0);
+
+                html += `
+                    <div class="flow-step">
+                        <div class="flow-icon" style="background: ${s.color}15; border-color: ${s.color}; color: ${s.color};">
+                            ${s.icon}
+                        </div>
+                        <div class="flow-name">${isFirst ? 'Population' : s.name.split(' ')[0]}</div>
+                        <div class="flow-n-label">${isFirst ? 'Total' : 'Passing'}</div>
+                        <div class="flow-n">${fmt(s.n)}</div>
+                        <div class="flow-metrics">
+                            ${isFirst ? `
+                                <div class="flow-metric">Prevalence <span class="flow-metric-value">${(s.prevalence * 100).toFixed(2)}%</span></div>
+                            ` : `
+                                <div class="flow-metric-row">
+                                    <div class="flow-metric">Sens <span class="flow-metric-value">${(s.sensitivity * 100).toFixed(0)}%</span></div>
+                                    <div class="flow-metric">Spec <span class="flow-metric-value">${(s.specificity * 100).toFixed(0)}%</span></div>
+                                </div>
+                                <div class="flow-metric">Prevalence <span class="flow-metric-value">${(s.prevalence * 100).toFixed(1)}%</span></div>
+                                <div class="flow-cost">${stepCost > 0 ? fmtCost(stepCost) : 'Routine'}</div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Arrow before final
+            html += `<div class="flow-arrow">→</div>`;
+
+            // Final result
+            html += `
+                <div class="flow-step">
+                    <div class="flow-icon" style="background: #dcfce715; border-color: #16a34a; color: #16a34a;">
+                        ✓
+                    </div>
+                    <div class="flow-name">Final Cohort</div>
+                    <div class="flow-n-label">Identified</div>
+                    <div class="flow-n">${fmt(r.finalN)}</div>
+                    <div class="flow-metrics">
+                        <div class="flow-metric">PPV <span class="flow-metric-value">${(r.ppv * 100).toFixed(1)}%</span></div>
+                        <div class="flow-metric">True Positives <span class="flow-metric-value">${r.finalTP}</span></div>
+                        <div class="flow-cost">Total ${fmtCost(r.totalCost)}</div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function renderDistribution(r) {
+            const canvas = document.getElementById('dist-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = rect.width, h = rect.height;
+            const pad = { t: 20, r: 20, b: 40, l: 50 };
+            const pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
+
+            // Use the equivalent single-test AUC for the final stage
+            const equivAUC = calculateAUCFromSensSpec(r.sensitivity, r.specificity);
+            const dPrime = dPrimeFromAuc(equivAUC);
+
+            // Calculate the threshold that gives the final operating point
+            const thresh = normalInvCDF(1 - r.sensitivity) + dPrime;
+
+            // Scale factors based on actual population sizes
+            const casesScale = r.totalCases / r.population;
+            const controlsScale = r.totalNonCases / r.population;
+
+            // Zoom around the threshold for better visualization
+            const xMin = Math.min(-2, thresh - 2);
+            const xMax = Math.max(dPrime + 2, thresh + 2);
+            const xRange = xMax - xMin;
+
+            // Find max Y for cases curve (we zoom to this to show the imbalance)
+            let maxCasesY = 0;
+            for (let x = xMin; x <= xMax; x += 0.1) {
+                maxCasesY = Math.max(maxCasesY, normalPDF(x, dPrime, 1) * casesScale);
+            }
+            // Add some headroom
+            const maxY = maxCasesY * 1.15;
+
+            const toX = x => pad.l + ((x - xMin) / xRange) * pw;
+            const toY = y => pad.t + ph - Math.min((y / maxY) * ph, ph);
+
+            // Clear
+            ctx.clearRect(0, 0, w, h);
+
+            // Clip to chart area
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(pad.l, pad.t, pw, ph);
+            ctx.clip();
+
+            // Shade FP region (controls above threshold) - red (draw first, behind)
+            ctx.beginPath();
+            ctx.moveTo(toX(thresh), toY(0));
+            for (let x = thresh; x <= xMax; x += 0.02) {
+                ctx.lineTo(toX(x), toY(normalPDF(x, 0, 1) * controlsScale));
+            }
+            ctx.lineTo(toX(xMax), toY(0));
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+            ctx.fill();
+
+            // Shade TP region (cases above threshold) - green
+            ctx.beginPath();
+            ctx.moveTo(toX(thresh), toY(0));
+            for (let x = thresh; x <= xMax; x += 0.02) {
+                ctx.lineTo(toX(x), toY(normalPDF(x, dPrime, 1) * casesScale));
+            }
+            ctx.lineTo(toX(xMax), toY(0));
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(22, 163, 74, 0.4)';
+            ctx.fill();
+
+            // Shade FN region (cases below threshold) - amber
+            ctx.beginPath();
+            ctx.moveTo(toX(xMin), toY(0));
+            for (let x = xMin; x <= thresh; x += 0.02) {
+                ctx.lineTo(toX(x), toY(normalPDF(x, dPrime, 1) * casesScale));
+            }
+            ctx.lineTo(toX(thresh), toY(0));
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.3)';
+            ctx.fill();
+
+            // Controls distribution curve (will be cut off at top)
+            ctx.beginPath();
+            ctx.moveTo(toX(xMin), toY(normalPDF(xMin, 0, 1) * controlsScale));
+            for (let x = xMin; x <= xMax; x += 0.02) {
+                ctx.lineTo(toX(x), toY(normalPDF(x, 0, 1) * controlsScale));
+            }
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Cases distribution curve
+            ctx.beginPath();
+            ctx.moveTo(toX(xMin), toY(normalPDF(xMin, dPrime, 1) * casesScale));
+            for (let x = xMin; x <= xMax; x += 0.02) {
+                ctx.lineTo(toX(x), toY(normalPDF(x, dPrime, 1) * casesScale));
+            }
+            ctx.strokeStyle = '#16a34a';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.restore(); // Remove clip
+
+            // Axes
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(pad.l, pad.t);
+            ctx.lineTo(pad.l, h - pad.b);
+            ctx.lineTo(w - pad.r, h - pad.b);
+            ctx.stroke();
+
+            // Threshold line
+            ctx.strokeStyle = '#dc2626';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(toX(thresh), pad.t);
+            ctx.lineTo(toX(thresh), h - pad.b);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Threshold label
+            ctx.fillStyle = '#dc2626';
+            ctx.font = 'bold 9px system-ui';
+            ctx.textAlign = 'center';
+            ctx.fillText('Cutoff', toX(thresh), pad.t + 10);
+
+            // Annotations with white background
+            ctx.font = '9px system-ui';
+            ctx.textAlign = 'left';
+            const annotX = toX(thresh) + 10;
+            const annotY = pad.t + 24;
+            const lineHeight = 14;
+
+            const labels = [
+                { text: `Detected: ${(r.sensitivity * 100).toFixed(0)}%`, color: '#166534' },
+                { text: `Missed: ${((1 - r.sensitivity) * 100).toFixed(0)}%`, color: '#92400e' },
+                { text: `False +: ${((1 - r.ppv) * 100).toFixed(0)}% of flagged`, color: '#991b1b' }
+            ];
+
+            let maxWidth = 0;
+            labels.forEach(l => {
+                maxWidth = Math.max(maxWidth, ctx.measureText(l.text).width);
+            });
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.fillRect(annotX - 4, annotY - 10, maxWidth + 10, lineHeight * labels.length + 6);
+
+            labels.forEach((l, i) => {
+                ctx.fillStyle = l.color;
+                ctx.fillText(l.text, annotX, annotY + i * lineHeight);
+            });
+
+            // Axis labels
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px system-ui';
+            ctx.textAlign = 'center';
+            ctx.fillText('Biomarker Score', w / 2, h - 8);
+
+            // Prevalence annotation (shows the imbalance)
+            ctx.fillStyle = '#374151';
+            ctx.textAlign = 'left';
+            ctx.font = '10px system-ui';
+            ctx.fillText(`Prevalence: ${(r.prevalence * 100).toFixed(2)}%`, pad.l + 5, pad.t + 12);
+        }
+
+        function renderROC(r) {
+            const canvas = document.getElementById('roc-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = rect.width, h = rect.height;
+            // Use square proportions for proper 1:1 axes
+            const size = Math.min(w, h);
+            const pad = { t: 15, r: 15, b: 40, l: 45 };
+            const plotSize = size - pad.l - pad.r;
+
+            const toX = x => pad.l + x * plotSize;
+            const toY = y => pad.t + plotSize - y * plotSize;
+
+            // Clear
+            ctx.clearRect(0, 0, w, h);
+
+            // Grid lines
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            for (let i = 0.2; i < 1; i += 0.2) {
+                ctx.beginPath();
+                ctx.moveTo(toX(i), toY(0));
+                ctx.lineTo(toX(i), toY(1));
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(toX(0), toY(i));
+                ctx.lineTo(toX(1), toY(i));
+                ctx.stroke();
+            }
+
+            // Axes
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(pad.l, pad.t);
+            ctx.lineTo(pad.l, toY(0));
+            ctx.lineTo(toX(1), toY(0));
+            ctx.stroke();
+
+            // Diagonal (chance line)
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.setLineDash([4, 3]);
+            ctx.beginPath();
+            ctx.moveTo(toX(0), toY(0));
+            ctx.lineTo(toX(1), toY(1));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // ROC curve - use equivalent AUC from sens/spec
+            const auc = calculateAUCFromSensSpec(r.sensitivity, r.specificity);
+            const dPrime = dPrimeFromAuc(auc);
+            ctx.beginPath();
+            ctx.moveTo(toX(0), toY(0));
+            for (let fpr = 0; fpr <= 1; fpr += 0.01) {
+                const tpr = 1 - normalCDF(normalInvCDF(1 - fpr) - dPrime);
+                ctx.lineTo(toX(fpr), toY(tpr));
+            }
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Fill under curve
+            ctx.lineTo(toX(1), toY(0));
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(37, 99, 235, 0.1)';
+            ctx.fill();
+
+            // Operating point
+            const opX = 1 - r.specificity, opY = r.sensitivity;
+            ctx.beginPath();
+            ctx.arc(toX(opX), toY(opY), 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Axis tick labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '9px system-ui';
+            ctx.textAlign = 'center';
+            for (let i = 0; i <= 1; i += 0.5) {
+                ctx.fillText(i.toFixed(1), toX(i), toY(0) + 12);
+            }
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 1; i += 0.5) {
+                ctx.fillText(i.toFixed(1), pad.l - 5, toY(i) + 3);
+            }
+
+            // Axis labels
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px system-ui';
+            ctx.textAlign = 'center';
+            ctx.fillText('False Positive Rate', pad.l + plotSize / 2, toY(0) + 28);
+            ctx.save();
+            ctx.translate(12, pad.t + plotSize / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('True Positive Rate', 0, 0);
+            ctx.restore();
+        }
+
+        function renderCostChart(r) {
+            const canvas = document.getElementById('cost-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = rect.width, h = rect.height;
+            const centerX = w / 2;
+            const centerY = h / 2;
+            const radius = Math.min(w, h) / 2 - 30;
+
+            // Get cost data from stages
+            const costData = [];
+            const colors = ['#8b5cf6', '#ec4899', '#f97316', '#6366f1', '#0891b2', '#16a34a'];
+
+            r.stages.forEach((s, i) => {
+                if (i > 0 && s.cost > 0 && s.inputN > 0) {
+                    const stageCost = s.cost * s.inputN;
+                    if (stageCost > 0) {
+                        costData.push({
+                            name: s.name.split(' ')[0],
+                            cost: stageCost,
+                            color: colors[i % colors.length]
+                        });
+                    }
+                }
+            });
+
+            if (costData.length === 0 || r.totalCost === 0) {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px system-ui';
+                ctx.textAlign = 'center';
+                ctx.fillText('No costs (all routine)', centerX, centerY);
+                return;
+            }
+
+            // Draw pie chart
+            let startAngle = -Math.PI / 2;
+            costData.forEach((d, i) => {
+                const sliceAngle = (d.cost / r.totalCost) * Math.PI * 2;
+                const endAngle = startAngle + sliceAngle;
+
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = d.color;
+                ctx.fill();
+
+                // Label
+                const midAngle = startAngle + sliceAngle / 2;
+                const labelRadius = radius * 0.65;
+                const labelX = centerX + Math.cos(midAngle) * labelRadius;
+                const labelY = centerY + Math.sin(midAngle) * labelRadius;
+
+                const pct = (d.cost / r.totalCost * 100);
+                if (pct > 8) {
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 10px system-ui';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${pct.toFixed(0)}%`, labelX, labelY);
+                }
+
+                startAngle = endAngle;
+            });
+
+            // Legend
+            const legendY = h - 15;
+            const legendWidth = costData.length * 70;
+            let legendX = (w - legendWidth) / 2;
+
+            ctx.font = '9px system-ui';
+            costData.forEach((d, i) => {
+                ctx.fillStyle = d.color;
+                ctx.fillRect(legendX, legendY - 8, 10, 10);
+                ctx.fillStyle = '#475569';
+                ctx.textAlign = 'left';
+                ctx.fillText(d.name, legendX + 14, legendY);
+                legendX += 70;
+            });
+        }
+
+        function renderCascade(r) {
+            const tbody = document.getElementById('cascade-body');
+            if (!tbody) return;
+
+            let html = '';
+            r.stages.forEach((s, i) => {
+                const isFirst = i === 0;
+                const pct = (s.n / r.population) * 100;
+
+                html += `<tr>
+                    <td>
+                        <div class="layer-badge">
+                            <span class="layer-icon" style="background: ${s.color}20; color: ${s.color};">${s.icon}</span>
+                            ${s.name}
+                        </div>
+                    </td>
+                    <td class="num">${isFirst ? '—' : s.auc.toFixed(2)}</td>
+                    <td class="num">${isFirst ? '—' : s.cohortPct.toFixed(1) + '%'}</td>
+                    <td class="num">${isFirst ? '—' : (s.sensitivity * 100).toFixed(1) + '%'}</td>
+                    <td class="num">${isFirst ? '—' : (s.specificity * 100).toFixed(1) + '%'}</td>
+                    <td class="bar-cell">
+                        <div class="mini-bar">
+                            <div class="mini-bar-fill" style="width: ${pct}%; background: ${s.color};"></div>
+                        </div>
+                    </td>
+                    <td class="num">${fmt(s.n)}</td>
+                    <td class="num">${s.cases.toLocaleString()}</td>
+                    <td class="num">${(s.prevalence * 100).toFixed(2)}%</td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function loadData() {
+            const stored = localStorage.getItem('ibdPipelineData');
+
+if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    if (data.pipeline && data.pipeline.length > 0) {
+                        renderDashboard(data);
+                        return;
+                    }
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        window.addEventListener('storage', e => { if (e.key === 'ibdPipelineData') loadData(); });
+        let lastData = null;
+        setInterval(() => {
+            const stored = localStorage.getItem('ibdPipelineData');
+            if (stored !== lastData) { lastData = stored; loadData(); }
+        }, 500);
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

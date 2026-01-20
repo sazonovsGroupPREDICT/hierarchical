@@ -1,0 +1,3239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Design and evaluate multi-stage IBD screening pipelines. Compare costs, sensitivity, and PPV across different screening strategies.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Hierarchical IBD Screening Calculator">
+    <meta property="og:description" content="Design and evaluate multi-stage IBD screening pipelines. Compare costs, sensitivity, and PPV across different screening strategies.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/sazonovs/hierarchical/main/preview.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Hierarchical IBD Screening Calculator">
+    <meta name="twitter:description" content="Design and evaluate multi-stage IBD screening pipelines. Compare costs, sensitivity, and PPV across different screening strategies.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/sazonovs/hierarchical/main/preview.png">
+
+    <title>Hierarchical IBD Screening</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪡</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #1a1a2e;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 220px 1fr 380px;
+            grid-template-rows: auto 1fr;
+            min-height: 100vh;
+            gap: 0;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            padding: 12px 25px;
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .header-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .header-control input {
+            width: 90px;
+            padding: 4px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            background: #fff;
+            color: #1a1a2e;
+            font-size: 0.8rem;
+        }
+
+        .header-control input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .header-dashboard-btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .header-dashboard-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .header-share-btn {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .header-share-btn:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        /* Block Palette - Left Sidebar */
+        .block-palette {
+            background: #fff;
+            border-right: 1px solid #e2e8f0;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .palette-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .palette-instructions {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .palette-section {
+            margin-bottom: 20px;
+        }
+
+        /* Correlation Matrix */
+        .correlation-matrix {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+        }
+
+        .correlation-matrix-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.65rem;
+        }
+
+        .corr-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .corr-label {
+            width: 24px;
+            text-align: center;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .corr-cell {
+            width: 32px;
+            height: 24px;
+        }
+
+        .corr-cell input {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+            text-align: center;
+            font-size: 0.6rem;
+            padding: 0;
+            background: #fff;
+        }
+
+        .corr-cell input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .corr-cell.diagonal {
+            background: #e2e8f0;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.6rem;
+        }
+
+        .corr-cell.empty {
+            background: transparent;
+        }
+
+        .corr-header {
+            display: flex;
+            gap: 4px;
+            margin-left: 28px;
+            margin-bottom: 4px;
+        }
+
+        .corr-header span {
+            width: 32px;
+            text-align: center;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.65rem;
+        }
+
+        .no-correlation-msg {
+            color: #94a3b8;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Presets */
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .preset-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        /* Tooltips */
+        .has-tooltip {
+            position: relative;
+            cursor: help;
+            border-bottom: 1px dotted #94a3b8;
+        }
+
+        .has-tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #1e293b;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            line-height: 1.4;
+            white-space: normal;
+            width: max-content;
+            max-width: 220px;
+            z-index: 1000;
+            margin-bottom: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .has-tooltip:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 20px;
+            border: 6px solid transparent;
+            border-top-color: #1e293b;
+            z-index: 1000;
+        }
+
+        .palette-blocks-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .palette-block {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .palette-block:hover {
+            background: #fff;
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .palette-block:active {
+            cursor: grabbing;
+        }
+
+        .palette-block.dragging {
+            opacity: 0.5;
+        }
+
+        .palette-block-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin: 0 auto 4px;
+        }
+
+        .palette-block-name {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: center;
+        }
+
+        .palette-block-stats {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 4px;
+            font-size: 0.58rem;
+            color: #94a3b8;
+        }
+
+        /* Pipeline Canvas - Center */
+        .pipeline-canvas {
+            background: #f0f4f8;
+            position: relative;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .pipeline-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 30px;
+        }
+
+        .population-block {
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 15px 25px;
+            text-align: center;
+            min-width: 220px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+        }
+
+        .population-block-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #93c5fd;
+            margin-bottom: 5px;
+        }
+
+        .population-block-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .population-block-subtitle {
+            font-size: 0.75rem;
+            color: #bfdbfe;
+            margin-top: 3px;
+        }
+
+        .pipeline-connector {
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+            position: relative;
+        }
+
+        .pipeline-connector::after {
+            content: '▼';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #8b5cf6;
+            font-size: 0.7rem;
+        }
+
+        .drop-zone {
+            min-height: 80px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            margin: 10px 0;
+            padding: 15px;
+            width: 100%;
+            max-width: 380px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .drop-zone.drag-over {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .drop-zone.has-blocks {
+            border: none;
+            min-height: auto;
+            padding: 0;
+            flex-direction: column;
+            gap: 0;
+            background: transparent;
+        }
+
+        /* Pipeline Blocks */
+        .pipeline-block {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0;
+            width: 100%;
+            max-width: 520px;
+            position: relative;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .pipeline-block:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+        }
+
+        .pipeline-block.dragging {
+            opacity: 0.6;
+            transform: scale(0.98);
+        }
+
+        .pipeline-block-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: #f8fafc;
+            cursor: grab;
+            gap: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .pipeline-block-header:active {
+            cursor: grabbing;
+        }
+
+        .pipeline-block-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .pipeline-block-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pipeline-block-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #1e293b;
+        }
+
+        .pipeline-block-type {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .pipeline-block-actions {
+            display: flex;
+            gap: 3px;
+        }
+
+        .block-action-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .block-action-btn:hover {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .block-action-btn.delete:hover {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .block-action-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .block-action-btn:disabled:hover {
+            background: transparent;
+            color: #94a3b8;
+        }
+
+        .block-action-btn.move-up,
+        .block-action-btn.move-down {
+            font-size: 0.85rem;
+            padding: 2px 6px;
+        }
+
+        .pipeline-block-body {
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .pipeline-block-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .block-params {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .block-param {
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .block-param-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 3px;
+            font-weight: 500;
+        }
+
+        .block-param-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .block-param input[type="range"] {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+            margin-top: 6px;
+        }
+
+        .block-param input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Cost row */
+        .block-cost-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 8px 10px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cost-input-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .cost-input-group label {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .cost-input-group input[type="number"] {
+            width: 60px;
+            padding: 3px 6px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-align: right;
+        }
+
+        .cost-input-group input[type="number"]:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .routine-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .routine-toggle label {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.3s;
+            border-radius: 20px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #10b981;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(16px);
+        }
+
+        .pipeline-block-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: #e2e8f0;
+            margin-top: 10px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .block-metric {
+            background: #f8fafc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .block-metric-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .block-metric-label {
+            font-size: 0.6rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Waffle Plot */
+        .waffle-container {
+            padding: 8px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            width: 130px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .waffle-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 10px);
+            grid-template-rows: repeat(10, 10px);
+            gap: 1px;
+        }
+
+        .waffle-cell {
+            width: 10px;
+            height: 10px;
+            border-radius: 1px;
+        }
+
+        .waffle-cell.tn { background-color: #cbd5e1; }
+        .waffle-cell.fp { background-color: #ef4444; }
+        .waffle-cell.fn { background-color: #f59e0b; }
+        .waffle-cell.tp { background-color: #22c55e; }
+
+        .waffle-info {
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .waffle-legend {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 4px;
+            font-size: 0.55rem;
+            color: #64748b;
+        }
+
+        .waffle-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .waffle-legend-color {
+            width: 6px;
+            height: 6px;
+            border-radius: 1px;
+            flex-shrink: 0;
+        }
+
+        .waffle-legend-color.tn { background-color: #cbd5e1; }
+        .waffle-legend-color.fp { background-color: #ef4444; }
+        .waffle-legend-color.fn { background-color: #f59e0b; }
+        .waffle-legend-color.tp { background-color: #22c55e; }
+
+        .waffle-stats {
+            font-size: 0.65rem;
+            color: #475569;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .block-connector {
+            width: 2px;
+            height: 25px;
+            background: linear-gradient(to bottom, var(--block-color, #8b5cf6), var(--next-color, #ec4899));
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .block-connector::after {
+            content: '▼';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--next-color, #ec4899);
+            font-size: 0.65rem;
+        }
+
+        /* Results Panel - Right Sidebar */
+        .results-panel {
+            background: #fff;
+            border-left: 1px solid #e2e8f0;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .results-section {
+            margin-bottom: 12px;
+        }
+
+        .results-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .result-card {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-card.highlight {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+
+        .result-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .result-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .result-label {
+            font-size: 0.65rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .result-ci {
+            font-size: 0.6rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* Cumulative Waffle */
+        .cumulative-waffle-container {
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cumulative-waffle-container .waffle-grid {
+            grid-template-columns: repeat(10, 12px);
+            grid-template-rows: repeat(10, 12px);
+            gap: 2px;
+        }
+
+        .cumulative-waffle-container .waffle-cell {
+            width: 12px;
+            height: 12px;
+        }
+
+        .cumulative-waffle-container .waffle-info {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .cumulative-waffle-container .waffle-legend {
+            font-size: 0.7rem;
+            gap: 4px 12px;
+        }
+
+        .cumulative-waffle-container .waffle-stats {
+            font-size: 0.9rem;
+            margin-top: 6px;
+            text-align: left;
+        }
+
+        /* Layer Performance */
+        .layer-performance-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .layer-perf-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+        }
+
+        .layer-perf-name {
+            width: 60px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .layer-perf-bar {
+            flex: 1;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .layer-perf-bar-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .layer-perf-bar-fill.retained {
+            background: #3b82f6;
+        }
+
+        .layer-perf-bar-fill.filtered {
+            background: #94a3b8;
+        }
+
+        /* Population Flow Panel */
+        .population-flow-section {
+            min-height: auto;
+            display: block;
+        }
+
+        .population-flow-panel {
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            min-height: 220px;
+            display: block;
+            overflow: visible;
+        }
+
+        .flow-panel-header {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fff;
+        }
+
+        .flow-panel-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .chart-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.65rem;
+            color: #64748b;
+        }
+
+        .chart-legend .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        #population-chart-container {
+            padding: 8px;
+            position: relative;
+            height: 180px;
+            min-height: 180px;
+        }
+
+        #population-chart-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .histogram-container {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .histogram-canvas-container {
+            position: relative;
+            height: 80px;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        .histogram-canvas-container canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .histogram-axis {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .comparison-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.8rem;
+        }
+
+        .comparison-row:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-label {
+            color: #64748b;
+        }
+
+        .comparison-value {
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .comparison-value.good {
+            color: #16a34a;
+        }
+
+        .comparison-value.bad {
+            color: #dc2626;
+        }
+
+        /* Block colors */
+        .block-genetic { --block-color: #3b82f6; }
+        .block-genetic .pipeline-block-icon,
+        .block-genetic .palette-block-icon { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+
+        .block-demographic { --block-color: #8b5cf6; }
+        .block-demographic .pipeline-block-icon,
+        .block-demographic .palette-block-icon { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+
+        .block-blood { --block-color: #ec4899; }
+        .block-blood .pipeline-block-icon,
+        .block-blood .palette-block-icon { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+
+        .block-fecal { --block-color: #f97316; }
+        .block-fecal .pipeline-block-icon,
+        .block-fecal .palette-block-icon { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+
+        .block-imaging { --block-color: #06b6d4; }
+        .block-imaging .pipeline-block-icon,
+        .block-imaging .palette-block-icon { background: rgba(6, 182, 212, 0.2); color: #06b6d4; }
+
+        .block-omics { --block-color: #6366f1; }
+        .block-omics .pipeline-block-icon,
+        .block-omics .palette-block-icon { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
+
+        .block-environment { --block-color: #14b8a6; }
+        .block-environment .pipeline-block-icon,
+        .block-environment .palette-block-icon { background: rgba(20, 184, 166, 0.2); color: #14b8a6; }
+
+        .block-custom { --block-color: #10b981; }
+        .block-custom .pipeline-block-icon,
+        .block-custom .palette-block-icon { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+
+        /* Reset button */
+        .reset-btn {
+            background: #fff;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            width: 100%;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pipeline-block {
+            animation: slideIn 0.3s ease;
+        }
+
+        .block-param input[type="range"] {
+            -webkit-user-drag: none;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 180px 1fr 320px;
+            }
+
+            .results-panel {
+                padding: 12px;
+            }
+
+            .result-value {
+                font-size: 1.1rem;
+            }
+
+            .palette-block {
+                padding: 8px;
+            }
+
+            .palette-block-name {
+                font-size: 0.75rem;
+            }
+
+            .palette-block-desc {
+                font-size: 0.65rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr auto;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px 15px;
+            }
+
+            header h1 {
+                font-size: 1rem;
+            }
+
+            .header-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .header-control {
+                font-size: 0.75rem;
+            }
+
+            .header-control input {
+                width: 70px;
+                padding: 4px 6px;
+                font-size: 0.75rem;
+            }
+
+            /* Block palette becomes horizontal scrolling row */
+            .block-palette {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+                padding: 10px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Hide presets and correlations on mobile, show only blocks */
+            .block-palette .palette-section:first-child,
+            .block-palette .palette-section:nth-child(3) {
+                display: none;
+            }
+
+            .block-palette .palette-section:nth-child(2) {
+                flex-shrink: 0;
+            }
+
+            .block-palette .palette-section:nth-child(2) .palette-title,
+            .block-palette .palette-section:nth-child(2) .palette-instructions {
+                display: none;
+            }
+
+            .palette-blocks-grid {
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+
+            .palette-block {
+                min-width: 85px;
+                max-width: 85px;
+                padding: 8px;
+                margin-bottom: 0;
+                flex-shrink: 0;
+            }
+
+            .palette-block-icon {
+                width: 24px;
+                height: 24px;
+                font-size: 0.8rem;
+                margin-bottom: 4px;
+            }
+
+            .palette-block-name {
+                font-size: 0.65rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .palette-block-desc {
+                display: none;
+            }
+
+            .palette-block-stats {
+                font-size: 0.6rem;
+                margin-top: 4px;
+            }
+
+            .reset-btn {
+                display: none;
+            }
+
+            .header-dashboard-btn {
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+
+            /* Pipeline canvas full width */
+            .pipeline-canvas {
+                padding: 15px 10px;
+            }
+
+            .pipeline-block {
+                max-width: 100%;
+            }
+
+            .pipeline-block-body {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .waffle-container {
+                width: 100%;
+                flex-direction: row;
+                gap: 12px;
+            }
+
+            .waffle-grid {
+                flex-shrink: 0;
+            }
+
+            .waffle-info {
+                flex: 1;
+                margin-top: 0;
+            }
+
+            .waffle-legend {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px 12px;
+            }
+
+            /* Results panel at bottom */
+            .results-panel {
+                border-left: none;
+                border-top: 1px solid #e2e8f0;
+                padding: 15px;
+                max-height: none;
+                overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .result-card.full-width {
+                grid-column: span 2;
+            }
+
+            .population-flow-panel {
+                max-height: none;
+                min-height: auto;
+                height: auto;
+            }
+
+            #population-chart-container {
+                min-height: 140px;
+                height: 140px;
+            }
+
+            .layer-performance-container {
+                max-height: 180px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .cumulative-waffle-container {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .cumulative-waffle-container .waffle-info {
+                text-align: center;
+            }
+
+            .cumulative-waffle-container .waffle-legend {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 8px 10px;
+            }
+
+            header h1 {
+                font-size: 0.9rem;
+            }
+
+            .header-controls {
+                gap: 6px;
+            }
+
+            .header-control {
+                font-size: 0.7rem;
+                gap: 4px;
+            }
+
+            .header-control input {
+                width: 60px;
+                padding: 3px 5px;
+            }
+
+            .block-palette {
+                padding: 8px;
+                gap: 6px;
+            }
+
+            .palette-block {
+                min-width: 70px;
+                max-width: 70px;
+                padding: 6px;
+                flex-shrink: 0;
+            }
+
+            .palette-block-icon {
+                width: 22px;
+                height: 22px;
+                font-size: 0.85rem;
+            }
+
+            .palette-block-name {
+                font-size: 0.55rem;
+            }
+
+            .palette-block-stats {
+                display: none;
+            }
+
+            .pipeline-canvas {
+                padding: 10px 8px;
+            }
+
+            .population-block {
+                padding: 10px 15px;
+                min-width: 180px;
+            }
+
+            .population-block-title {
+                font-size: 0.65rem;
+            }
+
+            .population-block-value {
+                font-size: 1.2rem;
+            }
+
+            .population-block-subtitle {
+                font-size: 0.65rem;
+            }
+
+            .pipeline-block-header {
+                padding: 8px 10px;
+                gap: 8px;
+            }
+
+            .pipeline-block-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9rem;
+            }
+
+            .pipeline-block-name {
+                font-size: 0.75rem;
+            }
+
+            .pipeline-block-type {
+                font-size: 0.65rem;
+            }
+
+            .pipeline-block-body {
+                padding: 10px;
+            }
+
+            .block-params {
+                gap: 6px;
+            }
+
+            .block-param {
+                padding: 6px;
+            }
+
+            .block-param-label {
+                font-size: 0.6rem;
+            }
+
+            .block-param-value {
+                font-size: 0.9rem;
+            }
+
+            .block-cost-row {
+                flex-direction: column;
+                gap: 8px;
+                padding: 8px;
+            }
+
+            .cost-input-group label {
+                font-size: 0.65rem;
+            }
+
+            .routine-toggle label {
+                font-size: 0.65rem;
+            }
+
+            .pipeline-block-metrics {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .block-metric {
+                padding: 6px;
+            }
+
+            .block-metric-value {
+                font-size: 0.8rem;
+            }
+
+            .block-metric-label {
+                font-size: 0.55rem;
+            }
+
+            .waffle-grid {
+                grid-template-columns: repeat(10, 8px);
+                grid-template-rows: repeat(10, 8px);
+            }
+
+            .waffle-cell {
+                width: 8px;
+                height: 8px;
+            }
+
+            .waffle-legend {
+                font-size: 0.55rem;
+            }
+
+            .waffle-stats {
+                font-size: 0.6rem;
+            }
+
+            .results-panel {
+                padding: 10px;
+            }
+
+            .results-title {
+                font-size: 0.65rem;
+                margin-bottom: 6px;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+
+            .result-card {
+                padding: 8px;
+            }
+
+            .result-card.full-width {
+                grid-column: 1 / -1;
+            }
+
+            .result-value {
+                font-size: 1rem;
+            }
+
+            .result-label {
+                font-size: 0.6rem;
+            }
+
+            .result-ci {
+                font-size: 0.55rem;
+            }
+
+            .layer-perf-item {
+                font-size: 0.7rem;
+            }
+
+            .layer-perf-name {
+                width: 40px;
+            }
+
+            .population-flow-panel {
+                max-height: none;
+                min-height: auto;
+                height: auto;
+            }
+
+            #population-chart-container {
+                min-height: 120px;
+                height: 120px;
+            }
+
+            .layer-performance-container {
+                max-height: 160px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .chart-legend .legend-item {
+                font-size: 0.6rem;
+            }
+
+            .cumulative-waffle-container .waffle-grid {
+                grid-template-columns: repeat(10, 10px);
+                grid-template-rows: repeat(10, 10px);
+            }
+
+            .cumulative-waffle-container .waffle-cell {
+                width: 10px;
+                height: 10px;
+            }
+        }
+
+        footer {
+            grid-column: 1 / -1;
+            padding: 12px 20px;
+            background: #fff;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 400px) {
+            .header-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .header-control {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .header-control input {
+                width: 80px;
+            }
+
+            .palette-block {
+                min-width: 70px;
+                max-width: 70px;
+            }
+
+            .block-params {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline-block-metrics {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .results-section {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Hierarchical IBD Screening</h1>
+            <div class="header-controls">
+                <a href="dashboard.html" class="header-dashboard-btn" target="_blank">View Dashboard</a>
+                <button class="header-share-btn" onclick="copyShareURL()" title="Copy shareable link">Share</button>
+                <div class="header-control">
+                    <label>Population:</label>
+                    <input type="number" id="population" value="100000" min="1000" max="10000000" step="10000">
+                </div>
+                <div class="header-control">
+                    <label>IBD Risk:</label>
+                    <input type="number" id="prevalence" value="1.0" min="0.1" max="10" step="0.1">
+                    <span>%</span>
+                </div>
+                <div class="header-control">
+                    <label>Simulations:</label>
+                    <input type="number" id="num-sims" value="10000" min="100" max="50000" step="1000">
+                </div>
+            </div>
+        </header>
+
+        <!-- Left: Block Palette -->
+        <aside class="block-palette">
+            <div class="palette-section">
+                <div class="palette-title">Presets</div>
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-preset="default">Default (ambitious)</button>
+                    <button class="preset-btn" data-preset="cost">Cost-optimized</button>
+                    <button class="preset-btn" data-preset="nospared">No expenses spared</button>
+                </div>
+            </div>
+
+            <div class="palette-section">
+                <div class="palette-title">Screening Blocks</div>
+                <p class="palette-instructions">Tap or drag blocks to add screening steps</p>
+
+                <div class="palette-blocks-grid">
+                    <div class="palette-block block-demographic" draggable="true" data-type="demographic">
+                        <div class="palette-block-icon">👥</div>
+                        <div class="palette-block-name">Demographics</div>
+                        <div class="palette-block-stats">
+                            <span>AUC: 0.70</span>
+                            <span>€2</span>
+                        </div>
+                    </div>
+
+                    <div class="palette-block block-environment" draggable="true" data-type="environment">
+                        <div class="palette-block-icon">🌍</div>
+                        <div class="palette-block-name">Environment</div>
+                        <div class="palette-block-stats">
+                            <span>AUC: 0.75</span>
+                            <span>€15</span>
+                        </div>
+                    </div>
+
+                    <div class="palette-block block-genetic" draggable="true" data-type="genetic">
+                        <div class="palette-block-icon">🧬</div>
+                        <div class="palette-block-name">PRS</div>
+                        <div class="palette-block-stats">
+                            <span>AUC: 0.75</span>
+                            <span>€50</span>
+                        </div>
+                    </div>
+
+                    <div class="palette-block block-blood" draggable="true" data-type="blood">
+                        <div class="palette-block-icon">🩸</div>
+                        <div class="palette-block-name">Blood</div>
+                        <div class="palette-block-stats">
+                            <span>AUC: 0.75</span>
+                            <span>€20</span>
+                        </div>
+                    </div>
+
+                    <div class="palette-block block-fecal" draggable="true" data-type="fecal">
+                        <div class="palette-block-icon">💩</div>
+                        <div class="palette-block-name">Fecal</div>
+                        <div class="palette-block-stats">
+                            <span>AUC: 0.85</span>
+                            <span>€25</span>
+                        </div>
+                    </div>
+
+                    <div class="palette-block block-omics" draggable="true" data-type="omics">
+                        <div class="palette-block-icon">🧫</div>
+                        <div class="palette-block-name">Omics</div>
+                        <div class="palette-block-stats">
+                            <span>AUC: 0.85</span>
+                            <span>€100</span>
+                        </div>
+                    </div>
+
+                    <div class="palette-block block-imaging" draggable="true" data-type="imaging">
+                        <div class="palette-block-icon">📷</div>
+                        <div class="palette-block-name">Imaging</div>
+                        <div class="palette-block-stats">
+                            <span>AUC: 0.80</span>
+                            <span>€200</span>
+                        </div>
+                    </div>
+
+                    <div class="palette-block block-custom" draggable="true" data-type="custom">
+                        <div class="palette-block-icon">⚙️</div>
+                        <div class="palette-block-name">Custom</div>
+                        <div class="palette-block-stats">
+                            <span>AUC: 0.75</span>
+                            <span>€50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-section">
+                <div class="palette-title">Layer Correlations</div>
+                <p class="palette-instructions">Define correlations between screening layers (0-1)</p>
+                <div class="correlation-matrix" id="correlation-matrix">
+                    <div class="no-correlation-msg">Add 2+ layers to set correlations</div>
+                </div>
+            </div>
+
+            <button class="reset-btn" id="reset-btn">Reset Pipeline</button>
+        </aside>
+
+        <!-- Center: Pipeline Canvas -->
+        <main class="pipeline-canvas">
+            <div class="pipeline-container">
+                <div class="population-block">
+                    <div class="population-block-title">General Population</div>
+                    <div class="population-block-value" id="pop-display">100,000</div>
+                    <div class="population-block-subtitle"><span id="cases-display">1,000</span> expected cases (1.0%)</div>
+                </div>
+
+                <div class="pipeline-connector"></div>
+
+                <div class="drop-zone" id="drop-zone">
+                    <span>Drag screening blocks here to build pipeline</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right: Results Panel -->
+        <aside class="results-panel">
+            <div class="results-section">
+                <div class="results-title">Final Cohort</div>
+                <div class="results-grid">
+                    <div class="result-card highlight">
+                        <div class="result-value" id="final-ppv" style="color: #16a34a;">--</div>
+                        <div class="result-label has-tooltip" data-tooltip="Positive Predictive Value: % of flagged individuals who truly have disease">PPV</div>
+                        <div class="result-ci" id="ppv-ci">95% CI: --</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-value" id="final-sensitivity" style="color: #ca8a04;">--</div>
+                        <div class="result-label has-tooltip" data-tooltip="% of all true cases that are detected by the pipeline">Sensitivity</div>
+                        <div class="result-ci" id="sens-ci">95% CI: --</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-value" id="final-cohort">--</div>
+                        <div class="result-label has-tooltip" data-tooltip="Number of individuals flagged for follow-up">Cohort Size</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-value" id="enrichment" style="color: #2563eb;">--</div>
+                        <div class="result-label has-tooltip" data-tooltip="How many times higher the PPV is compared to population prevalence">Enrichment</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="results-title">Cost Analysis</div>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-value" id="total-cost" style="color: #0891b2;">--</div>
+                        <div class="result-label has-tooltip" data-tooltip="Total cost of running all non-routine tests">Total Cost</div>
+                    </div>
+                    <div class="result-card highlight">
+                        <div class="result-value" id="cost-per-case" style="color: #0891b2;">--</div>
+                        <div class="result-label has-tooltip" data-tooltip="Total cost divided by number of true cases detected">Cost/Case</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="results-title">Single-Test Equivalent</div>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-value" id="single-auc" style="color: #dc2626;">--</div>
+                        <div class="result-label has-tooltip" data-tooltip="AUC a single test would need to match this pipeline's performance">Required AUC</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-value" id="single-feasibility" style="color: #64748b;">--</div>
+                        <div class="result-label has-tooltip" data-tooltip="How realistic it is to achieve this AUC with a single biomarker">Feasibility</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="results-title">Cumulative Confusion Matrix</div>
+                <div class="cumulative-waffle-container" id="cumulative-waffle">
+                    <div style="text-align: center; color: #94a3b8; font-size: 0.75rem; padding: 20px;">Loading...</div>
+                </div>
+            </div>
+
+            <div class="results-section population-flow-section">
+                <div class="results-title">Population Flow</div>
+                <div class="population-flow-panel">
+                    <div class="flow-panel-header">
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #16a34a;"></div>
+                                <span>True Positives</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #dc2626;"></div>
+                                <span>False Positives</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="population-chart-container">
+                        <canvas id="population-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <div class="results-title">Layer Performance</div>
+                <div id="layer-performance" class="layer-performance-container">
+                </div>
+            </div>
+        </aside>
+
+        <footer>
+            Made by the Sazonovs Lab, PREDICT, AAU Copenhagen
+        </footer>
+    </div>
+
+    <script>
+// =========================
+// Hierarchical IBD Screening (web)
+// Math matches final.ipynb: binormal model + top-q tail of the mixture at each layer
+// =========================
+
+// Block definitions
+const blockTypes = {
+  genetic: { name: 'Polygenic Risk Score', icon: '🧬', className: 'block-genetic', defaultAuc: 0.75, defaultCohortPct: 10, defaultCost: 50 },
+  demographic: { name: 'Demographics + History', icon: '👥', className: 'block-demographic', defaultAuc: 0.70, defaultCohortPct: 20, defaultCost: 2 },
+  blood: { name: 'Blood Biomarkers', icon: '🩸', className: 'block-blood', defaultAuc: 0.75, defaultCohortPct: 10, defaultCost: 20 },
+  fecal: { name: 'Fecal Calprotectin', icon: '💩', className: 'block-fecal', defaultAuc: 0.85, defaultCohortPct: 5, defaultCost: 25 },
+  omics: { name: 'Omics Panel', icon: '🧫', className: 'block-omics', defaultAuc: 0.85, defaultCohortPct: 5, defaultCost: 100 },
+  imaging: { name: 'Imaging Biomarkers', icon: '📷', className: 'block-imaging', defaultAuc: 0.80, defaultCohortPct: 5, defaultCost: 200 },
+  environment: { name: 'Environment', icon: '🌍', className: 'block-environment', defaultAuc: 0.75, defaultCohortPct: 10, defaultCost: 15 },
+  custom: { name: 'Custom Block', icon: '⚙️', className: 'block-custom', defaultAuc: 0.75, defaultCohortPct: 10, defaultCost: 50 }
+};
+
+// Pipeline state
+let pipeline = [
+  { id: 1, type: 'genetic', name: 'Polygenic Risk Score', auc: 0.75, cohortPct: 27.47, cost: 50, routinelyAvailable: true },
+  { id: 2, type: 'blood', name: 'Blood Biomarkers', auc: 0.75, cohortPct: 28.00, cost: 20, routinelyAvailable: true },
+  { id: 3, type: 'fecal', name: 'Fecal Calprotectin', auc: 0.85, cohortPct: 19.50, cost: 25, routinelyAvailable: false },
+  { id: 4, type: 'omics', name: 'Omics Panel', auc: 0.85, cohortPct: 35.58, cost: 100, routinelyAvailable: false },
+  { id: 5, type: 'imaging', name: 'Imaging Biomarkers', auc: 0.90, cohortPct: 45.73, cost: 200, routinelyAvailable: false }
+];
+let blockIdCounter = 5;
+let lastSimResults = null;
+
+// Correlation matrix (stores pairwise correlations between layers)
+// Key format: "layerIdx1-layerIdx2" where layerIdx1 < layerIdx2
+let correlations = {};
+
+// Preset pipeline configurations
+const presets = {
+  default: {
+    pipeline: [
+      { type: 'genetic', name: 'Polygenic Risk Score', auc: 0.75, cohortPct: 58.72, cost: 50, routinelyAvailable: true },
+      { type: 'blood', name: 'Blood Biomarkers', auc: 0.72, cohortPct: 58.87, cost: 20, routinelyAvailable: true },
+      { type: 'fecal', name: 'Fecal Calprotectin', auc: 0.85, cohortPct: 22.63, cost: 25, routinelyAvailable: false },
+      { type: 'omics', name: 'Omics Panel', auc: 0.85, cohortPct: 25.57, cost: 100, routinelyAvailable: false },
+      { type: 'imaging', name: 'Imaging Biomarkers', auc: 0.90, cohortPct: 73.79, cost: 200, routinelyAvailable: false }
+    ],
+    correlations: {}
+  },
+  cost: {
+    pipeline: [
+      { type: 'blood', name: 'Blood Biomarkers', auc: 0.72, cohortPct: 15, cost: 20, routinelyAvailable: true },
+      { type: 'genetic', name: 'Polygenic Risk Score', auc: 0.75, cohortPct: 25, cost: 50, routinelyAvailable: true },
+      { type: 'fecal', name: 'Fecal Calprotectin', auc: 0.85, cohortPct: 35, cost: 25, routinelyAvailable: false }
+    ],
+    correlations: {}
+  },
+  nospared: {
+    pipeline: [
+      { type: 'genetic', name: 'Polygenic Risk Score', auc: 0.75, cohortPct: 30, cost: 50, routinelyAvailable: true },
+      { type: 'blood', name: 'Blood Biomarkers', auc: 0.75, cohortPct: 35, cost: 20, routinelyAvailable: true },
+      { type: 'omics', name: 'Omics Panel', auc: 0.88, cohortPct: 40, cost: 150, routinelyAvailable: false },
+      { type: 'fecal', name: 'Fecal Calprotectin', auc: 0.85, cohortPct: 45, cost: 25, routinelyAvailable: false },
+      { type: 'imaging', name: 'Imaging Biomarkers', auc: 0.92, cohortPct: 55, cost: 300, routinelyAvailable: false },
+      { type: 'endoscopy', name: 'Endoscopy', auc: 0.98, cohortPct: 70, cost: 500, routinelyAvailable: false }
+    ],
+    correlations: {}
+  }
+};
+
+// =========================
+// Math helpers
+// =========================
+
+function normalCDF(x) {
+  const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+  const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+  const sign = x < 0 ? -1 : 1;
+  const absX = Math.abs(x) / Math.sqrt(2);
+  const t = 1.0 / (1.0 + p * absX);
+  const erf = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-absX * absX);
+  return 0.5 * (1.0 + sign * erf);
+}
+
+// Acklam's inverse-normal approximation
+function normalInvCDF(p) {
+  if (p <= 0) return -Infinity;
+  if (p >= 1) return Infinity;
+  const a = [-3.969683028665376e+01,  2.209460984245205e+02, -2.759285104469687e+02,
+              1.383577518672690e+02, -3.066479806614716e+01,  2.506628277459239e+00];
+  const b = [-5.447609879822406e+01,  1.615858368580409e+02, -1.556989798598866e+02,
+              6.680131188771972e+01, -1.328068155288572e+01];
+  const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+             -2.549732539343734e+00,  4.374664141464968e+00,  2.938163982698783e+00];
+  const d = [ 7.784695709041462e-03,  3.224671290700398e-01,  2.445134137142996e+00,
+              3.754408661907416e+00];
+  const pLow = 0.02425;
+  const pHigh = 1 - pLow;
+  let q, r;
+  if (p < pLow) {
+    q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]) /
+           ((((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1);
+  }
+  if (p <= pHigh) {
+    q = p - 0.5;
+    r = q*q;
+    return (((((a[0]*r + a[1])*r + a[2])*r + a[3])*r + a[4])*r + a[5]) * q /
+           (((((b[0]*r + b[1])*r + b[2])*r + b[3])*r + b[4])*r + 1);
+  }
+  q = Math.sqrt(-2 * Math.log(1 - p));
+  return -(((((c[0]*q + c[1])*q + c[2])*q + c[3])*q + c[4])*q + c[5]) /
+          ((((d[0]*q + d[1])*q + d[2])*q + d[3])*q + 1);
+}
+
+function dPrimeFromAuc(auc) {
+  const a = Math.min(0.999999, Math.max(0.500001, auc));
+  return Math.sqrt(2) * normalInvCDF(a);
+}
+
+function mixtureTailMass(t, pi, dPrime) {
+  // P(S>t) under mixture of controls N(0,1) and cases N(d',1)
+  const tpr = 1 - normalCDF(t - dPrime);
+  const fpr = 1 - normalCDF(t);
+  return pi * tpr + (1 - pi) * fpr;
+}
+
+function findThresholdForTopQ(q, pi, dPrime) {
+  if (q <= 0) return Infinity;
+  if (q >= 1) return -Infinity;
+  let lo = -12.0, hi = 12.0;
+  for (let i = 0; i < 120; i++) {
+    const mid = 0.5 * (lo + hi);
+    if (mixtureTailMass(mid, pi, dPrime) > q) lo = mid;
+    else hi = mid;
+  }
+  return 0.5 * (lo + hi);
+}
+
+// Main per-layer mapping: (AUC, current prevalence pi, selected cohort proportion q) -> (sens, spec)
+function calculateSensSpec(auc, pi, q) {
+  const a = Math.min(0.999999, Math.max(0.500001, auc));
+  const p = Math.min(0.999999, Math.max(0.000001, pi));
+  const qq = Math.min(1, Math.max(0, q));
+
+  if (qq <= 0) return { sensitivity: 0, specificity: 1, fpr: 0, threshold: Infinity, q: qq };
+  if (qq >= 1) return { sensitivity: 1, specificity: 0, fpr: 1, threshold: -Infinity, q: qq };
+
+  const dPrime = dPrimeFromAuc(a);
+  const t = findThresholdForTopQ(qq, p, dPrime);
+  const sensitivity = 1 - normalCDF(t - dPrime);
+  const fpr = 1 - normalCDF(t);
+  const specificity = 1 - fpr;
+  return { sensitivity, specificity, fpr, threshold: t, q: qq };
+}
+
+function calculateAUCFromSensSpec(sens, spec) {
+  const s = Math.min(0.999, Math.max(0.001, sens));
+  const sp = Math.min(0.999, Math.max(0.001, spec));
+  const dPrime = normalInvCDF(s) + normalInvCDF(sp);
+  return normalCDF(dPrime / Math.sqrt(2));
+}
+
+function sampleBinomial(n, p) {
+  if (n === 0 || p === 0) return 0;
+  if (p === 1) return n;
+  if (n > 100) {
+    const mean = n * p;
+    const std = Math.sqrt(n * p * (1 - p));
+    const u1 = Math.random();
+    const u2 = Math.random();
+    const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    return Math.max(0, Math.min(n, Math.round(mean + std * z)));
+  }
+  let successes = 0;
+  for (let i = 0; i < n; i++) if (Math.random() < p) successes++;
+  return successes;
+}
+
+function percentile(arr, p) {
+  const sorted = [...arr].sort((a, b) => a - b);
+  const idx = (p / 100) * (sorted.length - 1);
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  const w = idx - lo;
+  return sorted[lo] * (1 - w) + sorted[hi] * w;
+}
+
+function mean(arr) {
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+
+// =========================
+// Cholesky decomposition for correlated sampling
+// =========================
+
+function choleskyDecomposition(matrix) {
+  const n = matrix.length;
+  const L = Array(n).fill(null).map(() => Array(n).fill(0));
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j <= i; j++) {
+      let sum = 0;
+      for (let k = 0; k < j; k++) {
+        sum += L[i][k] * L[j][k];
+      }
+      if (i === j) {
+        L[i][j] = Math.sqrt(Math.max(0, matrix[i][i] - sum));
+      } else {
+        L[i][j] = L[j][j] > 0 ? (matrix[i][j] - sum) / L[j][j] : 0;
+      }
+    }
+  }
+  return L;
+}
+
+function buildCorrelationMatrix(numLayers) {
+  // Build correlation matrix from stored correlations
+  const matrix = [];
+  for (let i = 0; i < numLayers; i++) {
+    matrix[i] = [];
+    for (let j = 0; j < numLayers; j++) {
+      if (i === j) {
+        matrix[i][j] = 1;
+      } else {
+        const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+        matrix[i][j] = correlations[key] || 0;
+      }
+    }
+  }
+  return matrix;
+}
+
+function sampleCorrelatedNormals(n, choleskyL) {
+  // Generate n correlated standard normal samples
+  const k = choleskyL.length;
+  const independent = [];
+  for (let i = 0; i < k; i++) {
+    const u1 = Math.random();
+    const u2 = Math.random();
+    independent.push(Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2));
+  }
+
+  // Multiply by Cholesky factor
+  const correlated = [];
+  for (let i = 0; i < k; i++) {
+    let sum = 0;
+    for (let j = 0; j <= i; j++) {
+      sum += choleskyL[i][j] * independent[j];
+    }
+    correlated.push(sum);
+  }
+  return correlated;
+}
+
+// =========================
+// Simulation + costs
+// =========================
+
+function runSimulation(population, prevalence, blocks, numSims) {
+  const totalCases = Math.round(population * prevalence);
+  const totalNonCases = population - totalCases;
+  const numLayers = blocks.length;
+
+  // Build correlation matrix and Cholesky factor
+  const corrMatrix = buildCorrelationMatrix(numLayers);
+  const choleskyL = choleskyDecomposition(corrMatrix);
+
+  // Precompute d' and thresholds for each layer
+  const layerParams = blocks.map((block, idx) => {
+    const dPrime = dPrimeFromAuc(block.auc);
+    return { dPrime, cohortPct: block.cohortPct };
+  });
+
+  const results = { ppv: [], sensitivity: [], finalTotal: [], finalCases: [] };
+
+  // For large populations, use batch sampling
+  const batchSize = Math.min(1000, Math.max(100, Math.floor(population / 100)));
+
+  for (let sim = 0; sim < numSims; sim++) {
+    let cases = totalCases;
+    let nonCases = totalNonCases;
+
+    // Process cases and non-cases through the pipeline
+    // Using correlated sampling for accuracy
+    for (let layerIdx = 0; layerIdx < numLayers; layerIdx++) {
+      const total = cases + nonCases;
+      if (total <= 0) {
+        cases = 0; nonCases = 0;
+        break;
+      }
+
+      const block = blocks[layerIdx];
+      const pi = cases / total;
+      const q = (block.cohortPct ?? 0) / 100;
+      const params = calculateSensSpec(block.auc, pi, q);
+
+      let effectiveSens = params.sensitivity;
+      let effectiveFpr = params.fpr;
+
+      // Apply correlation adjustment
+      // When layers are correlated, those who passed earlier layers are more likely to pass this one
+      if (layerIdx > 0) {
+        const rho = getMaxCorrelation(layerIdx);
+        if (rho > 0) {
+          // With correlation rho, passing previous layers boosts pass probability
+          // P(pass | already passed correlated layer) = base_rate + rho * (1 - base_rate)
+          effectiveSens = params.sensitivity + rho * (1 - params.sensitivity);
+          effectiveFpr = params.fpr + rho * (1 - params.fpr);
+        }
+      }
+
+      cases = sampleBinomial(cases, Math.min(1, effectiveSens));
+      nonCases = sampleBinomial(nonCases, Math.min(1, effectiveFpr));
+    }
+
+    const finalTotal = cases + nonCases;
+    results.ppv.push(finalTotal > 0 ? cases / finalTotal : 0);
+    results.sensitivity.push(totalCases > 0 ? cases / totalCases : 0);
+    results.finalTotal.push(finalTotal);
+    results.finalCases.push(cases);
+  }
+
+  return results;
+}
+
+function getMaxCorrelation(layerIdx) {
+  // Get maximum correlation with any previous layer
+  let maxCorr = 0;
+  for (let i = 0; i < layerIdx; i++) {
+    const key = `${i}-${layerIdx}`;
+    maxCorr = Math.max(maxCorr, correlations[key] || 0);
+  }
+  return maxCorr;
+}
+
+function calculateCosts(population, prevalence, blocks) {
+  let totalCost = 0;
+  let currentTotal = population;
+  let currentCases = Math.round(population * prevalence);
+
+  for (let layerIdx = 0; layerIdx < blocks.length; layerIdx++) {
+    const block = blocks[layerIdx];
+    const cost = block.routinelyAvailable ? 0 : (block.cost || 0);
+    totalCost += currentTotal * cost;
+
+    const pi = currentTotal > 0 ? (currentCases / currentTotal) : 0;
+    const q = (block.cohortPct ?? 0) / 100;
+    const params = calculateSensSpec(block.auc, pi, q);
+
+    let effectiveSens = params.sensitivity;
+    let effectiveFpr = params.fpr;
+
+    // Apply correlation adjustment
+    if (layerIdx > 0) {
+      const rho = getMaxCorrelation(layerIdx);
+      if (rho > 0) {
+        effectiveSens = params.sensitivity + rho * (1 - params.sensitivity);
+        effectiveFpr = params.fpr + rho * (1 - params.fpr);
+      }
+    }
+
+    const casesAfter = Math.round(currentCases * effectiveSens);
+    const nonCasesAfter = Math.round((currentTotal - currentCases) * effectiveFpr);
+
+    currentCases = casesAfter;
+    currentTotal = casesAfter + nonCasesAfter;
+  }
+
+  return { totalCost, finalCases: currentCases, finalTotal: currentTotal };
+}
+
+function formatCurrency(value) {
+  if (value >= 1e9) return '€' + (value / 1e9).toFixed(1) + 'B';
+  if (value >= 1e6) return '€' + (value / 1e6).toFixed(1) + 'M';
+  if (value >= 1e3) return '€' + (value / 1e3).toFixed(1) + 'K';
+  return '€' + Math.round(value).toLocaleString();
+}
+
+// =========================
+// UI rendering
+// =========================
+
+function getBlockColor(type) {
+  const colors = {
+    genetic: '#3b82f6', demographic: '#8b5cf6', blood: '#ec4899',
+    omics: '#6366f1', fecal: '#f97316', imaging: '#06b6d4', custom: '#10b981'
+  };
+  return colors[type] || '#888';
+}
+
+function renderWafflePlot(container, tn, fp, fn, tp) {
+  const total = tn + fp + fn + tp;
+  if (total === 0) {
+    container.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.75rem;">No data</div>';
+    return;
+  }
+
+  // Calculate proportions for 100 cells
+  const cells = 100;
+  const tnCells = Math.round((tn / total) * cells);
+  const fpCells = Math.round((fp / total) * cells);
+  const fnCells = Math.round((fn / total) * cells);
+  let tpCells = cells - tnCells - fpCells - fnCells;
+
+  // Ensure we have exactly 100 cells
+  if (tpCells < 0) tpCells = 0;
+
+  // Build the cell array in order: TP (green), FN (orange), FP (red), TN (gray)
+  // Fill from bottom-left to top-right to match the example image
+  const cellTypes = [];
+  for (let i = 0; i < tpCells; i++) cellTypes.push('tp');
+  for (let i = 0; i < fnCells; i++) cellTypes.push('fn');
+  for (let i = 0; i < fpCells; i++) cellTypes.push('fp');
+  for (let i = 0; i < tnCells; i++) cellTypes.push('tn');
+
+  // Pad to 100 if needed
+  while (cellTypes.length < cells) cellTypes.push('tn');
+
+  // Rearrange to display correctly (bottom to top, left to right)
+  const grid = [];
+  for (let row = 9; row >= 0; row--) {
+    for (let col = 0; col < 10; col++) {
+      const idx = row * 10 + col;
+      grid.push(cellTypes[idx] || 'tn');
+    }
+  }
+
+  // Calculate PPV
+  const positives = tp + fp;
+  const ppv = positives > 0 ? (tp / positives * 100).toFixed(1) : 0;
+
+  let html = '<div class="waffle-grid">';
+  grid.forEach(type => {
+    html += `<div class="waffle-cell ${type}"></div>`;
+  });
+  html += '</div>';
+
+  // Format numbers compactly
+  const fmt = n => n >= 1000 ? (n/1000).toFixed(0) + 'k' : n;
+
+  html += `
+    <div class="waffle-info">
+      <div class="waffle-legend">
+        <div class="waffle-legend-item"><div class="waffle-legend-color tp"></div>TP ${fmt(tp)}</div>
+        <div class="waffle-legend-item"><div class="waffle-legend-color fp"></div>FP ${fmt(fp)}</div>
+        <div class="waffle-legend-item"><div class="waffle-legend-color fn"></div>FN ${fmt(fn)}</div>
+        <div class="waffle-legend-item"><div class="waffle-legend-color tn"></div>TN ${fmt(tn)}</div>
+      </div>
+      <div class="waffle-stats">PPV ${ppv}%</div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function renderPipeline() {
+  const dropZone = document.getElementById('drop-zone');
+  if (!dropZone) return;
+
+  if (pipeline.length === 0) {
+    dropZone.classList.remove('has-blocks');
+    dropZone.innerHTML = '<span>Drag screening blocks here to build pipeline</span>';
+    renderCorrelationMatrix();
+    updateResults();
+    return;
+  }
+
+  dropZone.classList.add('has-blocks');
+
+  let html = '';
+  pipeline.forEach((block, index) => {
+    const def = blockTypes[block.type];
+    html += `
+      <div class="pipeline-block ${def.className}" data-id="${block.id}" draggable="true">
+        <div class="pipeline-block-header">
+          <div class="pipeline-block-icon">${def.icon}</div>
+          <div class="pipeline-block-info">
+            <div class="pipeline-block-name">${block.name}</div>
+            <div class="pipeline-block-type">Layer ${index + 1}${block.routinelyAvailable ? ' • Routine' : ''}</div>
+          </div>
+          <div class="pipeline-block-actions">
+            <button class="block-action-btn move-up" data-id="${block.id}" title="Move up" ${index === 0 ? 'disabled' : ''}>↑</button>
+            <button class="block-action-btn move-down" data-id="${block.id}" title="Move down" ${index === pipeline.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="block-action-btn delete" data-id="${block.id}" title="Remove">×</button>
+          </div>
+        </div>
+        <div class="pipeline-block-body">
+          <div class="pipeline-block-content">
+            <div class="block-params">
+              <div class="block-param">
+                <div class="block-param-label">AUC</div>
+                <div class="block-param-value auc-value">${block.auc.toFixed(2)}</div>
+                <input type="range" class="auc-slider" data-id="${block.id}" min="0.55" max="1.0" step="0.01" value="${block.auc}">
+              </div>
+              <div class="block-param">
+                <div class="block-param-label">Selected cohort</div>
+                <div class="block-param-value cohort-value">${(block.cohortPct ?? 0).toFixed(1)}%</div>
+                <input type="range" class="cohort-slider" data-id="${block.id}" min="0" max="100" step="0.1" value="${block.cohortPct ?? 0}">
+              </div>
+            </div>
+            <div class="block-cost-row">
+              <div class="cost-input-group">
+                <label>Cost: €</label>
+                <input type="number" class="cost-input" data-id="${block.id}" value="${block.cost}" min="0" max="10000" ${block.routinelyAvailable ? 'disabled' : ''}>
+              </div>
+              <div class="routine-toggle">
+                <label>Routine</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" class="routine-checkbox" data-id="${block.id}" ${block.routinelyAvailable ? 'checked' : ''}>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="pipeline-block-metrics">
+              <div class="block-metric">
+                <div class="block-metric-value sens-metric" style="color: #16a34a;">--</div>
+                <div class="block-metric-label">Sensitivity</div>
+              </div>
+              <div class="block-metric">
+                <div class="block-metric-value spec-metric" style="color: #ca8a04;">--</div>
+                <div class="block-metric-label">Specificity</div>
+              </div>
+              <div class="block-metric">
+                <div class="block-metric-value pass-metric" data-id="${block.id}">--</div>
+                <div class="block-metric-label">Pass Through</div>
+              </div>
+            </div>
+          </div>
+          <div class="waffle-container waffle-plot" data-id="${block.id}">
+            <div style="text-align: center; color: #94a3b8; font-size: 0.75rem;">Loading...</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (index < pipeline.length - 1) {
+      html += `<div class="block-connector" style="--block-color: ${getBlockColor(block.type)}; --next-color: ${getBlockColor(pipeline[index + 1].type)};"></div>`;
+    }
+  });
+
+  html += `<div style="min-height: 80px; border: 2px dashed #cbd5e1; border-radius: 10px; margin-top: 16px; display: flex; align-items: center; justify-content: center; color: #b0b8c4; font-size: 0.8rem; background: rgba(255,255,255,0.5);">+ Add more blocks</div>`;
+
+  dropZone.innerHTML = html;
+  attachBlockListeners();
+  updateResults();
+}
+
+function attachBlockListeners() {
+  document.querySelectorAll('.block-action-btn.delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      pipeline = pipeline.filter(b => b.id !== id);
+      renderPipeline();
+    });
+  });
+
+  document.querySelectorAll('.block-action-btn.move-up').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      const idx = pipeline.findIndex(b => b.id === id);
+      if (idx > 0) {
+        [pipeline[idx - 1], pipeline[idx]] = [pipeline[idx], pipeline[idx - 1]];
+        renderPipeline();
+      }
+    });
+  });
+
+  document.querySelectorAll('.block-action-btn.move-down').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      const idx = pipeline.findIndex(b => b.id === id);
+      if (idx < pipeline.length - 1) {
+        [pipeline[idx], pipeline[idx + 1]] = [pipeline[idx + 1], pipeline[idx]];
+        renderPipeline();
+      }
+    });
+  });
+
+  document.querySelectorAll('.auc-slider').forEach(slider => {
+    slider.addEventListener('input', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      const block = pipeline.find(b => b.id === id);
+      if (!block) return;
+      block.auc = parseFloat(e.target.value);
+      const container = e.target.closest('.pipeline-block');
+      if (container) container.querySelector('.auc-value').textContent = block.auc.toFixed(2);
+      updateResults();
+    });
+  });
+
+  document.querySelectorAll('.cohort-slider').forEach(slider => {
+    slider.addEventListener('input', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      const block = pipeline.find(b => b.id === id);
+      if (!block) return;
+      block.cohortPct = parseFloat(e.target.value);
+      const container = e.target.closest('.pipeline-block');
+      if (container) container.querySelector('.cohort-value').textContent = (block.cohortPct).toFixed(1) + '%';
+      updateResults();
+    });
+  });
+
+  document.querySelectorAll('.cost-input').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      const block = pipeline.find(b => b.id === id);
+      if (!block) return;
+      block.cost = Math.max(0, parseFloat(e.target.value) || 0);
+      updateResults();
+    });
+  });
+
+  document.querySelectorAll('.routine-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      const id = parseInt(e.target.dataset.id);
+      const block = pipeline.find(b => b.id === id);
+      if (!block) return;
+      block.routinelyAvailable = e.target.checked;
+      renderPipeline();
+    });
+  });
+
+  // Pipeline drag reorder
+  document.querySelectorAll('.pipeline-block').forEach(blockEl => {
+    blockEl.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', blockEl.dataset.id);
+      blockEl.classList.add('dragging');
+    });
+    blockEl.addEventListener('dragend', () => blockEl.classList.remove('dragging'));
+    blockEl.addEventListener('dragover', (e) => e.preventDefault());
+    blockEl.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const fromId = parseInt(e.dataTransfer.getData('text/plain'));
+      const toId = parseInt(blockEl.dataset.id);
+      if (!fromId || !toId || fromId === toId) return;
+      const fromIdx = pipeline.findIndex(b => b.id === fromId);
+      const toIdx = pipeline.findIndex(b => b.id === toId);
+      if (fromIdx < 0 || toIdx < 0) return;
+      const [moved] = pipeline.splice(fromIdx, 1);
+      pipeline.splice(toIdx, 0, moved);
+      renderPipeline();
+    });
+  });
+
+  // Prevent slider drag from triggering reorder
+  document.querySelectorAll('.pipeline-block input[type="range"]').forEach(slider => {
+    slider.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      const block = e.target.closest('.pipeline-block');
+      if (block) block.setAttribute('draggable', 'false');
+    });
+    const restore = (e) => {
+      const block = e.target.closest('.pipeline-block');
+      if (block) block.setAttribute('draggable', 'true');
+    };
+    slider.addEventListener('mouseup', restore);
+    slider.addEventListener('mouseleave', restore);
+  });
+
+  // Update correlation matrix
+  renderCorrelationMatrix();
+}
+
+// =========================
+// Results + metrics
+// =========================
+
+function updateBlockMetrics(population, prevalence) {
+  let currentTotal = population;
+  let currentCases = Math.round(population * prevalence);
+
+  pipeline.forEach((block, layerIdx) => {
+    const currentNonCases = currentTotal - currentCases;
+    const pi = currentTotal > 0 ? (currentCases / currentTotal) : 0;
+    const q = (block.cohortPct ?? 0) / 100;
+    const params = calculateSensSpec(block.auc, pi, q);
+
+    let effectiveSens = params.sensitivity;
+    let effectiveFpr = params.fpr;
+
+    // Apply correlation adjustment
+    if (layerIdx > 0) {
+      const rho = getMaxCorrelation(layerIdx);
+      if (rho > 0) {
+        effectiveSens = params.sensitivity + rho * (1 - params.sensitivity);
+        effectiveFpr = params.fpr + rho * (1 - params.fpr);
+      }
+    }
+
+    const casesAfter = Math.round(currentCases * effectiveSens);
+    const nonCasesAfter = Math.round(currentNonCases * effectiveFpr);
+    const totalAfter = casesAfter + nonCasesAfter;
+
+    // Calculate confusion matrix values for this step
+    const tp = casesAfter;                          // True Positives: cases that pass
+    const fp = nonCasesAfter;                       // False Positives: non-cases that pass
+    const fn = currentCases - casesAfter;           // False Negatives: cases that don't pass
+    const tn = currentNonCases - nonCasesAfter;     // True Negatives: non-cases that don't pass
+
+    const passMetric = document.querySelector(`.pass-metric[data-id="${block.id}"]`);
+    if (passMetric) passMetric.textContent = totalAfter.toLocaleString();
+
+    const blockEl = document.querySelector(`.pipeline-block[data-id="${block.id}"]`);
+    if (blockEl) {
+      const sEl = blockEl.querySelector('.sens-metric');
+      const spEl = blockEl.querySelector('.spec-metric');
+      if (sEl) sEl.textContent = (params.sensitivity * 100).toFixed(1) + '%';
+      if (spEl) spEl.textContent = (params.specificity * 100).toFixed(1) + '%';
+    }
+
+    // Update waffle plot for this block
+    const waffleContainer = document.querySelector(`.waffle-plot[data-id="${block.id}"]`);
+    if (waffleContainer) {
+      renderWafflePlot(waffleContainer, tn, fp, fn, tp);
+    }
+
+    currentTotal = totalAfter;
+    currentCases = casesAfter;
+  });
+}
+
+function updateSingleTestComparison(cumSens, cumSpec) {
+  const aucEl = document.getElementById('single-auc');
+  const feasEl = document.getElementById('single-feasibility');
+  if (!aucEl || !feasEl) return;
+
+  if (cumSens <= 0 || cumSpec <= 0) {
+    aucEl.textContent = '--';
+    feasEl.textContent = '--';
+    feasEl.style.color = '#64748b';
+    return;
+  }
+
+  const requiredAUC = calculateAUCFromSensSpec(cumSens, cumSpec);
+  aucEl.textContent = requiredAUC.toFixed(3);
+
+  let feasibility = 'Achievable';
+  let color = '#16a34a';
+  if (requiredAUC > 0.99) { feasibility = 'Impossible'; color = '#dc2626'; }
+  else if (requiredAUC > 0.97) { feasibility = 'Near Impossible'; color = '#dc2626'; }
+  else if (requiredAUC > 0.95) { feasibility = 'Very Hard'; color = '#f59e0b'; }
+  else if (requiredAUC > 0.90) { feasibility = 'Difficult'; color = '#f59e0b'; }
+
+  feasEl.textContent = feasibility;
+  feasEl.style.color = color;
+}
+
+function updateResults() {
+  const pop = parseInt(document.getElementById('population')?.value) || 100000;
+  const prev = (parseFloat(document.getElementById('prevalence')?.value) || 1) / 100;
+  const numSims = parseInt(document.getElementById('num-sims')?.value) || 10000;
+
+  document.getElementById('pop-display').textContent = pop.toLocaleString();
+  const totalCases = Math.round(pop * prev);
+  document.getElementById('cases-display').textContent = totalCases.toLocaleString();
+
+  if (pipeline.length === 0) {
+    document.getElementById('final-ppv').textContent = (prev * 100).toFixed(1) + '%';
+    document.getElementById('final-sensitivity').textContent = '100%';
+    document.getElementById('final-cohort').textContent = pop.toLocaleString();
+    document.getElementById('enrichment').textContent = '1.0x';
+    document.getElementById('ppv-ci').textContent = '95% CI: --';
+    document.getElementById('sens-ci').textContent = '95% CI: --';
+    document.getElementById('total-cost').textContent = '€0';
+    document.getElementById('cost-per-case').textContent = '--';
+    document.getElementById('single-auc').textContent = '--';
+    document.getElementById('single-feasibility').textContent = '--';
+    renderPopulationChart(pop, prev, []);
+    const cw = document.getElementById('cumulative-waffle');
+    if (cw) cw.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.75rem; padding: 20px;">Add blocks to see results</div>';
+    const lp = document.getElementById('layer-performance');
+    if (lp) lp.innerHTML = '<div style="color: #94a3b8; font-size: 0.75rem; text-align: center;">Add blocks to see performance</div>';
+    return;
+  }
+
+  const results = runSimulation(pop, prev, pipeline, numSims);
+  lastSimResults = results;
+
+  const meanPPV = mean(results.ppv);
+  const meanSens = mean(results.sensitivity);
+  const meanCohort = mean(results.finalTotal);
+  const meanCases = mean(results.finalCases);
+
+  const ppvCI = [percentile(results.ppv, 2.5), percentile(results.ppv, 97.5)];
+  const sensCI = [percentile(results.sensitivity, 2.5), percentile(results.sensitivity, 97.5)];
+
+  document.getElementById('final-ppv').textContent = (meanPPV * 100).toFixed(1) + '%';
+  document.getElementById('final-sensitivity').textContent = (meanSens * 100).toFixed(1) + '%';
+  document.getElementById('final-cohort').textContent = Math.round(meanCohort).toLocaleString();
+  document.getElementById('enrichment').textContent = (meanPPV / prev).toFixed(1) + 'x';
+  document.getElementById('ppv-ci').textContent = `95% CI: [${(ppvCI[0] * 100).toFixed(1)}%, ${(ppvCI[1] * 100).toFixed(1)}%]`;
+  document.getElementById('sens-ci').textContent = `95% CI: [${(sensCI[0] * 100).toFixed(1)}%, ${(sensCI[1] * 100).toFixed(1)}%]`;
+
+  updateBlockMetrics(pop, prev);
+
+  const costData = calculateCosts(pop, prev, pipeline);
+  document.getElementById('total-cost').textContent = formatCurrency(costData.totalCost);
+  document.getElementById('cost-per-case').textContent = meanCases > 0 ? formatCurrency(costData.totalCost / meanCases) : '--';
+
+  renderPopulationChart(pop, prev, pipeline);
+
+  // cumulative specificity based on false positives in the final cohort
+  const initialNonCases = pop - totalCases;
+  const meanFalsePositives = meanCohort - meanCases;
+  const cumSpec = initialNonCases > 0 ? 1 - (meanFalsePositives / initialNonCases) : 0;
+  updateSingleTestComparison(meanSens, cumSpec);
+
+  // Update cumulative waffle
+  const cumulativeTN = Math.round(initialNonCases - meanFalsePositives);
+  const cumulativeFP = Math.round(meanFalsePositives);
+  const cumulativeFN = Math.round(totalCases - meanCases);
+  const cumulativeTP = Math.round(meanCases);
+  const cumulativeWaffle = document.getElementById('cumulative-waffle');
+  if (cumulativeWaffle) {
+    renderWafflePlot(cumulativeWaffle, cumulativeTN, cumulativeFP, cumulativeFN, cumulativeTP);
+  }
+
+  // Update layer performance
+  updateLayerPerformance(pop, prev, pipeline);
+
+  // Save to localStorage for dashboard
+  savePipelineData(pop, prev, pipeline);
+}
+
+function updateLayerPerformance(population, prevalence, pipelineBlocks) {
+  const container = document.getElementById('layer-performance');
+  if (!container) return;
+
+  if (!pipelineBlocks || pipelineBlocks.length === 0) {
+    container.innerHTML = '<div style="color: #94a3b8; font-size: 0.75rem; text-align: center;">Add blocks to see performance</div>';
+    return;
+  }
+
+  let currentTotal = population;
+  let currentCases = Math.round(population * prevalence);
+  let html = '';
+
+  pipelineBlocks.forEach((block, index) => {
+    const currentNonCases = currentTotal - currentCases;
+    const pi = currentTotal > 0 ? (currentCases / currentTotal) : 0;
+    const q = (block.cohortPct ?? 0) / 100;
+    const params = calculateSensSpec(block.auc, pi, q);
+
+    let effectiveSens = params.sensitivity;
+    let effectiveFpr = params.fpr;
+
+    // Apply correlation adjustment
+    if (index > 0) {
+      const rho = getMaxCorrelation(index);
+      if (rho > 0) {
+        effectiveSens = params.sensitivity + rho * (1 - params.sensitivity);
+        effectiveFpr = params.fpr + rho * (1 - params.fpr);
+      }
+    }
+
+    const casesAfter = Math.round(currentCases * effectiveSens);
+    const nonCasesAfter = Math.round(currentNonCases * effectiveFpr);
+    const totalAfter = casesAfter + nonCasesAfter;
+
+    const retainedPct = currentTotal > 0 ? (totalAfter / currentTotal * 100) : 0;
+    const filteredPct = 100 - retainedPct;
+
+    const shortName = block.name.split(' ')[0].substring(0, 8);
+
+    html += `
+      <div class="layer-perf-item">
+        <span class="layer-perf-name">L${index + 1}</span>
+        <div class="layer-perf-bar">
+          <div class="layer-perf-bar-fill retained" style="width: ${retainedPct}%">${retainedPct.toFixed(0)}%</div>
+          <div class="layer-perf-bar-fill filtered" style="width: ${filteredPct}%"></div>
+        </div>
+        <span style="width: 70px; text-align: right; color: #64748b;">${totalAfter.toLocaleString()}</span>
+      </div>
+    `;
+
+    currentTotal = totalAfter;
+    currentCases = casesAfter;
+  });
+
+  container.innerHTML = html;
+}
+
+// =========================
+// LocalStorage sync for dashboard
+// =========================
+
+function savePipelineData(population, prevalence, pipelineBlocks) {
+  const data = {
+    pipeline: pipelineBlocks.map(block => ({
+      id: block.id,
+      type: block.type,
+      name: block.name,
+      auc: block.auc,
+      cohortPct: block.cohortPct,
+      cost: block.cost,
+      routinelyAvailable: block.routinelyAvailable
+    })),
+    population: population,
+    prevalence: prevalence,
+    correlations: correlations
+  };
+  localStorage.setItem('ibdPipelineData', JSON.stringify(data));
+}
+
+// =========================
+// Population flow chart
+// =========================
+
+function renderPopulationChart(population, prevalence, pipeline) {
+  const canvas = document.getElementById('population-chart');
+  const container = document.getElementById('population-chart-container');
+  if (!canvas || !container) return;
+
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  // Skip if container has no dimensions (iOS layout not ready)
+  if (width < 10 || height < 10) {
+    setTimeout(() => renderPopulationChart(population, prevalence, pipeline), 50);
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+
+  if (!pipeline || pipeline.length === 0) {
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Add blocks to see flow', width / 2, height / 2);
+    return;
+  }
+
+  const totalCases = Math.round(population * prevalence);
+  const totalNonCases = population - totalCases;
+
+  const stages = [{ name: 'Start', tp: totalCases, fp: totalNonCases, total: population }];
+  let currentCases = totalCases;
+  let currentNonCases = totalNonCases;
+
+  pipeline.forEach((block, index) => {
+    const currentTotal = currentCases + currentNonCases;
+    const pi = currentTotal > 0 ? (currentCases / currentTotal) : 0;
+    const q = (block.cohortPct ?? 0) / 100;
+    const params = calculateSensSpec(block.auc, pi, q);
+
+    let effectiveSens = params.sensitivity;
+    let effectiveFpr = params.fpr;
+
+    // Apply correlation adjustment
+    if (index > 0) {
+      const rho = getMaxCorrelation(index);
+      if (rho > 0) {
+        effectiveSens = params.sensitivity + rho * (1 - params.sensitivity);
+        effectiveFpr = params.fpr + rho * (1 - params.fpr);
+      }
+    }
+
+    const tp = Math.round(currentCases * effectiveSens);
+    const fp = Math.round(currentNonCases * effectiveFpr);
+    stages.push({ name: `L${index + 1}`, tp, fp, total: tp + fp });
+    currentCases = tp;
+    currentNonCases = fp;
+  });
+
+  const padding = { top: 35, right: 20, bottom: 45, left: 45 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+
+  const barWidth = Math.min(50, Math.max(25, (chartWidth / stages.length) * 0.5));
+  const totalBarsWidth = barWidth * stages.length;
+  const totalGapsWidth = chartWidth - totalBarsWidth;
+  const barGap = totalGapsWidth / (stages.length + 1);
+
+  const maxTotal = population;
+
+  // Grid
+  ctx.strokeStyle = '#f1f5f9';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = padding.top + (chartHeight / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(width - padding.right, y);
+    ctx.stroke();
+
+    const logValue = Math.log10(maxTotal + 1) * (1 - i / 4);
+    const value = Math.pow(10, logValue) - 1;
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '9px -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    const label = value >= 1000000 ? (value / 1000000).toFixed(0) + 'M' : value >= 1000 ? (value / 1000).toFixed(0) + 'K' : Math.round(value).toString();
+    ctx.fillText(label, padding.left - 5, y + 3);
+  }
+
+  // Bars
+  stages.forEach((stage, i) => {
+    const x = padding.left + barGap + i * (barWidth + barGap);
+    const logMax = Math.log10(maxTotal + 1);
+    const logTotal = Math.log10(Math.max(1, stage.total) + 1);
+    const barHeight = Math.max(2, (logTotal / logMax) * chartHeight);
+    const barY = padding.top + chartHeight - barHeight;
+
+    const tpProp = stage.total > 0 ? stage.tp / stage.total : 0;
+    const tpHeight = barHeight * tpProp;
+    const fpHeight = barHeight * (1 - tpProp);
+
+    if (fpHeight > 0) {
+      ctx.fillStyle = '#fecaca';
+      ctx.fillRect(x, barY + tpHeight, barWidth, fpHeight);
+    }
+    if (tpHeight > 0) {
+      ctx.fillStyle = '#bbf7d0';
+      ctx.fillRect(x, barY, barWidth, tpHeight);
+    }
+
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, barY, barWidth, barHeight);
+
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 9px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    const totalLabel = stage.total >= 1000000 ? (stage.total / 1000000).toFixed(1) + 'M' : stage.total >= 1000 ? (stage.total / 1000).toFixed(0) + 'K' : stage.total.toLocaleString();
+    ctx.fillText(totalLabel, x + barWidth / 2, barY - 5);
+
+    ctx.fillStyle = '#475569';
+    ctx.font = '9px -apple-system, sans-serif';
+    ctx.fillText(stage.name, x + barWidth / 2, padding.top + chartHeight + 12);
+
+    if (i > 0) {
+      const ppv = stage.total > 0 ? (stage.tp / stage.total * 100) : 0;
+      ctx.fillStyle = '#16a34a';
+      ctx.font = 'bold 9px -apple-system, sans-serif';
+      ctx.fillText(`${ppv.toFixed(0)}%`, x + barWidth / 2, padding.top + chartHeight + 25);
+    }
+  });
+
+  // Arrows
+  for (let i = 0; i < stages.length - 1; i++) {
+    const x1 = padding.left + barGap + i * (barWidth + barGap) + barWidth;
+    const x2 = padding.left + barGap + (i + 1) * (barWidth + barGap);
+    const midX = (x1 + x2) / 2;
+    const y = padding.top + chartHeight * 0.3;
+
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x1 + 3, y);
+    ctx.lineTo(x2 - 6, y);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(x2 - 3, y);
+    ctx.lineTo(x2 - 8, y - 3);
+    ctx.lineTo(x2 - 8, y + 3);
+    ctx.closePath();
+    ctx.fillStyle = '#94a3b8';
+    ctx.fill();
+
+    const reduction = stages[i].total > 0 ? ((1 - stages[i + 1].total / stages[i].total) * 100).toFixed(0) : 0;
+    ctx.fillStyle = '#dc2626';
+    ctx.font = '8px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`-${reduction}%`, midX, y - 6);
+  }
+}
+
+// =========================
+// Drag & drop from palette
+// =========================
+
+let draggedType = null;
+
+function addBlockToPipeline(type) {
+  const def = blockTypes[type];
+  if (!def) return;
+  pipeline.push({
+    id: ++blockIdCounter,
+    type: type,
+    name: def.name,
+    auc: def.defaultAuc,
+    cohortPct: def.defaultCohortPct,
+    cost: def.defaultCost,
+    routinelyAvailable: false
+  });
+  renderPipeline();
+}
+
+function initDragDrop() {
+  document.querySelectorAll('.palette-block').forEach(block => {
+    // Click/tap to add (works on mobile/iOS)
+    block.addEventListener('click', (e) => {
+      const type = block.dataset.type;
+      addBlockToPipeline(type);
+    });
+
+    // Drag support for desktop
+    block.addEventListener('dragstart', (e) => {
+      draggedType = e.target.dataset.type;
+      e.target.classList.add('dragging');
+    });
+    block.addEventListener('dragend', (e) => {
+      e.target.classList.remove('dragging');
+      draggedType = null;
+    });
+  });
+
+  const dropZone = document.getElementById('drop-zone');
+  if (!dropZone) return;
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (!draggedType) return;
+    addBlockToPipeline(draggedType);
+  });
+}
+
+// =========================
+// Correlation Matrix UI
+// =========================
+
+function renderCorrelationMatrix() {
+  const container = document.getElementById('correlation-matrix');
+  if (!container) return;
+
+  const n = pipeline.length;
+  if (n < 2) {
+    container.innerHTML = '<div class="no-correlation-msg">Add 2+ layers to set correlations</div>';
+    return;
+  }
+
+  // Get icons for each layer
+  const icons = pipeline.map(b => blockTypes[b.type]?.icon || '📊');
+
+  // Build header row (layers 1 to n-1)
+  let html = '<div class="corr-header">';
+  for (let i = 0; i < n - 1; i++) {
+    html += `<span title="${pipeline[i].name}">${icons[i]}</span>`;
+  }
+  html += '</div>';
+
+  html += '<div class="correlation-matrix-grid">';
+
+  // Build matrix rows - row labels are layers 2 to n (inverted/flipped)
+  for (let j = 1; j < n; j++) {
+    html += '<div class="corr-row">';
+    html += `<span class="corr-label" title="${pipeline[j].name}">${icons[j]}</span>`;
+
+    for (let i = 0; i < n - 1; i++) {
+      if (i >= j) {
+        html += '<div class="corr-cell empty"></div>';
+      } else {
+        const key = `${i}-${j}`;
+        const val = correlations[key] || 0;
+        html += `<div class="corr-cell">
+          <input type="number" min="0" max="1" step="0.1" value="${val}" data-corr="${key}" title="${pipeline[i].name} ↔ ${pipeline[j].name}">
+        </div>`;
+      }
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Add event listeners
+  container.querySelectorAll('input[data-corr]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const key = e.target.dataset.corr;
+      const val = Math.max(0, Math.min(1, parseFloat(e.target.value) || 0));
+      e.target.value = val;
+      correlations[key] = val;
+      updateResults();
+      savePipelineData();
+    });
+  });
+}
+
+// =========================
+// Preset Pipelines
+// =========================
+
+function loadPreset(presetName) {
+  const preset = presets[presetName];
+  if (!preset) return;
+
+  // Clear and load pipeline
+  pipeline = preset.pipeline.map((block, idx) => ({
+    ...block,
+    id: ++blockIdCounter
+  }));
+
+  // Load correlations
+  correlations = { ...preset.correlations };
+
+  renderPipeline();
+}
+
+function initPresetButtons() {
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const preset = btn.dataset.preset;
+      loadPreset(preset);
+    });
+  });
+}
+
+// =========================
+// URL Sharing
+// =========================
+
+function encodeStateToURL() {
+  const state = {
+    pop: parseInt(document.getElementById('population')?.value) || 100000,
+    prev: parseFloat(document.getElementById('prevalence')?.value) || 1,
+    sims: parseInt(document.getElementById('num-sims')?.value) || 10000,
+    pipeline: pipeline.map(b => ({
+      t: b.type,
+      a: b.auc,
+      c: b.cohortPct,
+      $: b.cost,
+      r: b.routinelyAvailable ? 1 : 0
+    })),
+    corr: correlations
+  };
+
+  const encoded = btoa(JSON.stringify(state));
+  const url = new URL(window.location.href);
+  url.searchParams.set('s', encoded);
+  return url.toString();
+}
+
+function decodeStateFromURL() {
+  const url = new URL(window.location.href);
+  const encoded = url.searchParams.get('s');
+  if (!encoded) return false;
+
+  try {
+    const state = JSON.parse(atob(encoded));
+
+    if (state.pop) document.getElementById('population').value = state.pop;
+    if (state.prev) document.getElementById('prevalence').value = state.prev;
+    if (state.sims) document.getElementById('num-sims').value = state.sims;
+
+    if (state.pipeline && Array.isArray(state.pipeline)) {
+      pipeline = state.pipeline.map(b => ({
+        id: ++blockIdCounter,
+        type: b.t,
+        name: blockTypes[b.t]?.name || 'Custom',
+        auc: b.a,
+        cohortPct: b.c,
+        cost: b.$,
+        routinelyAvailable: b.r === 1
+      }));
+    }
+
+    if (state.corr) {
+      correlations = state.corr;
+    }
+
+    return true;
+  } catch (e) {
+    console.error('Failed to decode URL state:', e);
+    return false;
+  }
+}
+
+function copyShareURL() {
+  const url = encodeStateToURL();
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Link copied to clipboard!');
+  }).catch(() => {
+    prompt('Copy this link:', url);
+  });
+}
+
+// =========================
+// Init
+// =========================
+
+function init() {
+  // Try to load state from URL first
+  const loadedFromURL = decodeStateFromURL();
+
+  initDragDrop();
+  initPresetButtons();
+
+  document.getElementById('population')?.addEventListener('change', updateResults);
+  document.getElementById('prevalence')?.addEventListener('change', updateResults);
+  document.getElementById('num-sims')?.addEventListener('change', updateResults);
+
+  document.getElementById('reset-btn')?.addEventListener('click', () => {
+    pipeline = [];
+    correlations = {};
+    renderPipeline();
+  });
+
+  renderPipeline();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+// Resize/orientation handler for charts
+function handleResize() {
+  const pop = parseInt(document.getElementById('population')?.value) || 100000;
+  const prev = (parseFloat(document.getElementById('prevalence')?.value) || 1) / 100;
+  renderPopulationChart(pop, prev, pipeline);
+}
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(handleResize, 100);
+});
+window.addEventListener('orientationchange', () => {
+  setTimeout(handleResize, 200);
+});
+
+// iOS fix: re-render after layout settles
+setTimeout(() => {
+  handleResize();
+}, 100);
+</script>
+</body>
+</html>
