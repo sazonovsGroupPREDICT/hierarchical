@@ -1635,6 +1635,97 @@
             text-decoration: underline;
         }
 
+        /* Config Modal */
+        .config-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .config-modal-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .config-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .config-modal-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .config-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .config-textarea {
+            flex: 1;
+            min-height: 250px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .config-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .config-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #475569;
+        }
+
+        .config-btn:hover {
+            background: #f8fafc;
+        }
+
+        .config-btn-primary {
+            background: #3b82f6;
+            color: #fff;
+            border-color: #3b82f6;
+        }
+
+        .config-btn-primary:hover {
+            background: #2563eb;
+        }
+
         @media (max-width: 400px) {
             .header-controls {
                 flex-direction: column;
@@ -1676,6 +1767,7 @@
             <div class="header-controls">
                 <a href="dashboard.html" class="header-dashboard-btn" target="_blank">View Dashboard</a>
                 <button class="header-share-btn" onclick="copyShareURL()" title="Copy shareable link">Share</button>
+                <button class="header-share-btn" onclick="openConfigModal()" title="Import/Export config">Config</button>
                 <div class="header-control">
                     <label>Population:</label>
                     <input type="number" id="population" value="100000" min="1000" max="10000000" step="10000">
@@ -3236,6 +3328,102 @@ window.addEventListener('orientationchange', () => {
 setTimeout(() => {
   handleResize();
 }, 100);
+// =========================
+// Config Import/Export
+// =========================
+
+function getConfigJSON() {
+  const pop = parseInt(document.getElementById('population')?.value) || 100000;
+  const prev = parseFloat(document.getElementById('prevalence')?.value) || 1;
+  const config = {
+    population: pop,
+    prevalence: prev,
+    correlations: correlations,
+    pipeline: pipeline.map(b => ({
+      type: b.type,
+      name: b.name,
+      auc: b.auc,
+      cohortPct: b.cohortPct,
+      cost: b.cost,
+      routinelyAvailable: b.routinelyAvailable
+    }))
+  };
+  return JSON.stringify(config, null, 2);
+}
+
+function loadConfigJSON(json) {
+  try {
+    const config = JSON.parse(json);
+    if (config.population) document.getElementById('population').value = config.population;
+    if (config.prevalence) document.getElementById('prevalence').value = config.prevalence;
+    if (config.correlations) {
+      Object.keys(correlations).forEach(k => delete correlations[k]);
+      Object.assign(correlations, config.correlations);
+    }
+    if (config.pipeline && Array.isArray(config.pipeline)) {
+      pipeline.length = 0;
+      blockIdCounter = 0;
+      config.pipeline.forEach(b => {
+        pipeline.push({
+          id: ++blockIdCounter,
+          type: b.type,
+          name: b.name,
+          auc: b.auc,
+          cohortPct: b.cohortPct,
+          cost: b.cost,
+          routinelyAvailable: b.routinelyAvailable || false
+        });
+      });
+    }
+    renderPipeline();
+    closeConfigModal();
+    return true;
+  } catch (e) {
+    alert('Invalid config format: ' + e.message);
+    return false;
+  }
+}
+
+function openConfigModal() {
+  document.getElementById('config-modal').style.display = 'flex';
+  document.getElementById('config-textarea').value = getConfigJSON();
+}
+
+function closeConfigModal() {
+  document.getElementById('config-modal').style.display = 'none';
+}
+
+function copyConfig() {
+  const textarea = document.getElementById('config-textarea');
+  navigator.clipboard.writeText(textarea.value).then(() => {
+    alert('Config copied to clipboard!');
+  }).catch(() => {
+    textarea.select();
+    document.execCommand('copy');
+    alert('Config copied!');
+  });
+}
+
+function loadConfig() {
+  const json = document.getElementById('config-textarea').value;
+  loadConfigJSON(json);
+}
 </script>
+
+<!-- Config Modal -->
+<div id="config-modal" class="config-modal" onclick="if(event.target===this)closeConfigModal()">
+  <div class="config-modal-content">
+    <div class="config-modal-header">
+      <h3>Import/Export Configuration</h3>
+      <button onclick="closeConfigModal()" class="config-modal-close">&times;</button>
+    </div>
+    <textarea id="config-textarea" class="config-textarea" placeholder="Paste config JSON here..."></textarea>
+    <div class="config-modal-actions">
+      <button onclick="copyConfig()" class="config-btn">Copy</button>
+      <button onclick="loadConfig()" class="config-btn config-btn-primary">Load</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
