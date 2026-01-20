@@ -2607,8 +2607,10 @@ function updateBlockMetrics(population, prevalence) {
     if (blockEl) {
       const sEl = blockEl.querySelector('.sens-metric');
       const spEl = blockEl.querySelector('.spec-metric');
-      if (sEl) sEl.textContent = (params.sensitivity * 100).toFixed(1) + '%';
-      if (spEl) spEl.textContent = (params.specificity * 100).toFixed(1) + '%';
+      // Show effective values (after correlation adjustment)
+      const effectiveSpec = 1 - effectiveFpr;
+      if (sEl) sEl.textContent = (effectiveSens * 100).toFixed(1) + '%';
+      if (spEl) spEl.textContent = (effectiveSpec * 100).toFixed(1) + '%';
     }
 
     // Update waffle plot for this block
