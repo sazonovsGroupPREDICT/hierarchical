@@ -1255,46 +1255,60 @@
                 font-size: 0.75rem;
             }
 
-            /* Block palette becomes horizontal scrolling row */
+            /* Block palette becomes vertical stacked layout */
             .block-palette {
                 border-right: none;
                 border-bottom: 1px solid #e2e8f0;
                 padding: 10px;
-                overflow-x: auto;
-                overflow-y: hidden;
                 display: flex;
+                flex-direction: column;
                 gap: 10px;
-                align-items: flex-start;
+                overflow: visible;
+            }
+
+            /* Mobile: vertical layout - description, blocks, presets */
+            .palette-description {
+                font-size: 0.75rem;
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom: none;
+                order: 1;
+            }
+
+            .blocks-section {
+                order: 2;
+                overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
             }
 
-            /* Mobile: compact layout */
-            .palette-description,
-            .correlations-section,
             .blocks-section .palette-title,
-            .blocks-section .palette-instructions,
-            .presets-section .palette-title {
+            .blocks-section .palette-instructions {
                 display: none;
             }
 
             .presets-section {
-                flex-shrink: 0;
+                order: 3;
+            }
+
+            .presets-section .palette-title {
+                display: none;
             }
 
             .preset-buttons {
                 display: flex;
-                flex-direction: column;
-                gap: 4px;
+                flex-direction: row;
+                gap: 6px;
             }
 
             .preset-btn {
-                padding: 6px 10px;
-                font-size: 0.7rem;
+                flex: 1;
+                padding: 8px 6px;
+                font-size: 0.65rem;
                 white-space: nowrap;
             }
 
-            .blocks-section {
-                flex-shrink: 0;
+            .correlations-section {
+                display: none;
             }
 
             .palette-blocks-grid {
