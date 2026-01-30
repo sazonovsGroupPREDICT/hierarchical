@@ -1263,7 +1263,9 @@
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
-                overflow: visible;
+                overflow: hidden;
+                width: 100%;
+                max-width: 100vw;
             }
 
             /* Mobile: vertical layout - description, blocks, presets */
@@ -1278,7 +1280,17 @@
             .blocks-section {
                 order: 2;
                 overflow-x: auto;
+                overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
+                margin: 0 -10px;
+                padding: 0 10px;
+            }
+
+            .palette-blocks-grid {
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 8px;
+                width: max-content;
             }
 
             .blocks-section .palette-title,
@@ -1302,9 +1314,10 @@
 
             .preset-btn {
                 flex: 1;
-                padding: 8px 6px;
-                font-size: 0.65rem;
+                padding: 8px 4px;
+                font-size: 0.6rem;
                 white-space: nowrap;
+                min-width: 0;
             }
 
             .correlations-section {
