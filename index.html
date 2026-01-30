@@ -1176,6 +1176,71 @@
             border-color: #ef4444;
         }
 
+        /* Correlations toggle button - hidden on desktop */
+        .correlations-toggle-btn {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .correlations-toggle-btn:hover {
+            background: #e2e8f0;
+        }
+
+        /* Correlations modal */
+        .correlations-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .correlations-modal.open {
+            display: flex;
+        }
+
+        .correlations-modal-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            width: 90%;
+            max-width: 360px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .correlations-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .correlations-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0;
+            line-height: 1;
+        }
+
         /* Animations */
         @keyframes slideIn {
             from {
@@ -1322,6 +1387,11 @@
 
             .correlations-section {
                 display: none;
+            }
+
+            .correlations-toggle-btn {
+                display: block;
+                order: 4;
             }
 
             .palette-blocks-grid {
@@ -1952,7 +2022,23 @@
                 </div>
             </div>
 
+            <button class="correlations-toggle-btn" id="correlations-toggle">Correlations</button>
+
             <button class="reset-btn" id="reset-btn">Reset Pipeline</button>
+
+            <!-- Mobile correlations modal -->
+            <div class="correlations-modal" id="correlations-modal">
+                <div class="correlations-modal-content">
+                    <div class="correlations-modal-header">
+                        <span>Layer Correlations</span>
+                        <button class="correlations-modal-close" id="correlations-modal-close">&times;</button>
+                    </div>
+                    <p class="palette-instructions">Define correlations between screening layers (0-1)</p>
+                    <div class="correlation-matrix" id="correlation-matrix-mobile">
+                        <div class="no-correlation-msg">Add 2+ layers to set correlations</div>
+                    </div>
+                </div>
+            </div>
         </aside>
 
         <!-- Center: Pipeline Canvas -->
@@ -3371,6 +3457,42 @@ function init() {
     pipeline = [];
     correlations = {};
     renderPipeline();
+  });
+
+  // Correlations modal toggle
+  const correlationsToggle = document.getElementById('correlations-toggle');
+  const correlationsModal = document.getElementById('correlations-modal');
+  const correlationsModalClose = document.getElementById('correlations-modal-close');
+
+  correlationsToggle?.addEventListener('click', () => {
+    // Copy correlation matrix content to mobile modal
+    const desktopMatrix = document.getElementById('correlation-matrix');
+    const mobileMatrix = document.getElementById('correlation-matrix-mobile');
+    if (desktopMatrix && mobileMatrix) {
+      mobileMatrix.innerHTML = desktopMatrix.innerHTML;
+      // Re-attach event listeners to mobile inputs
+      mobileMatrix.querySelectorAll('input[data-corr]').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const key = e.target.dataset.corr;
+          correlations[key] = parseFloat(e.target.value) || 0;
+          // Sync back to desktop
+          const desktopInput = desktopMatrix.querySelector(`input[data-corr="${key}"]`);
+          if (desktopInput) desktopInput.value = e.target.value;
+          savePipelineData();
+        });
+      });
+    }
+    correlationsModal?.classList.add('open');
+  });
+
+  correlationsModalClose?.addEventListener('click', () => {
+    correlationsModal?.classList.remove('open');
+  });
+
+  correlationsModal?.addEventListener('click', (e) => {
+    if (e.target === correlationsModal) {
+      correlationsModal.classList.remove('open');
+    }
   });
 
   renderPipeline();
