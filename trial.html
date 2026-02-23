@@ -950,7 +950,7 @@ function computeNToScreen(nTotal, topXFrac) {
 // ══════════════════════════════════════════════════════════════════
 
 // Ephemeral hover state (not app state — just for chart rendering)
-const hover = { enrichX: null, ssEff: null };
+const hover = { enrichX: null, ssEff: null, ssBar: null }; // ssBar = { ei, ti } tapped on mobile
 
 const state = {
     baselineRisk: 0.01,        // fraction — the 5-yr CD baseline risk for the enrolled population
@@ -1423,8 +1423,11 @@ function drawSSChart(ctx, w, h) {
             ctx.fillStyle   = t.color;
             ctx.fillRect(barX, top, barW, barH);
 
-            // Value label above bar
-            if (barH > 0 && isFinite(n)) {
+            // Value label above bar — hidden on narrow screens unless this bar was tapped
+            const isNarrow   = w < 500;
+            const isTapped   = hover.ssBar && hover.ssBar.ei === ei && hover.ssBar.ti === ti;
+            const showLabel  = barH > 0 && isFinite(n) && (!isNarrow || isTapped);
+            if (showLabel) {
                 ctx.fillStyle    = '#111827';
                 ctx.font         = '12px -apple-system, sans-serif';
                 ctx.textBaseline = 'bottom';
@@ -1660,25 +1663,26 @@ window.addEventListener('DOMContentLoaded', () => {
     ssCanvas.style.cursor = 'pointer';
 
     function ssGroupFromEvent(ev) {
-        // Returns { eff, tailV } for the bar under the cursor, or nulls
+        // Returns { eff, tailV, ei, ti } for the bar under the cursor, or nulls
         const rect   = ssCanvas.getBoundingClientRect();
         const x      = ev.clientX - rect.left;
         const cw     = ssWrap.clientWidth - 70 - 20;
         const groupW = cw / SS_EFFS.length;
         const ei     = Math.floor((x - 70) / groupW);
-        if (ei < 0 || ei >= SS_EFFS.length) return { eff: null, tailV: null };
+        if (ei < 0 || ei >= SS_EFFS.length) return { eff: null, tailV: null, ei: null, ti: null };
         const eff    = SS_EFFS[ei].eff;
         const gPad   = Math.max(2, groupW * 0.12);
         const barW   = Math.max(2, (groupW - 2 * gPad - (SS_TAILS.length - 1) * 1.5) / SS_TAILS.length);
         const localX = (x - 70) - ei * groupW - gPad;
-        const bi     = Math.floor(localX / (barW + 1.5));
-        const tailV  = SS_TAILS[bi]?.v ?? null;
-        return { eff, tailV };
+        const ti     = Math.floor(localX / (barW + 1.5));
+        const tailV  = SS_TAILS[ti]?.v ?? null;
+        return { eff, tailV, ei, ti: tailV !== null ? ti : null };
     }
 
     ssCanvas.addEventListener('mousemove', ev => {
         const { eff } = ssGroupFromEvent(ev);
         hover.ssEff = eff;
+        hover.ssBar = null;
         drawSS();
     });
     ssCanvas.addEventListener('mouseleave', () => {
@@ -1686,7 +1690,7 @@ window.addEventListener('DOMContentLoaded', () => {
         drawSS();
     });
     ssCanvas.addEventListener('click', ev => {
-        const { eff, tailV } = ssGroupFromEvent(ev);
+        const { eff, tailV, ei, ti } = ssGroupFromEvent(ev);
         if (eff !== null) {
             state.efficacy = eff;
             document.querySelectorAll('.efficacy-btn').forEach(btn =>
@@ -1697,6 +1701,13 @@ window.addEventListener('DOMContentLoaded', () => {
             state.tail = tailV;
             document.getElementById('tail-slider').value = Math.round(tailV * 100);
             document.getElementById('tail-display').textContent = Math.round(tailV * 100) + '%';
+        }
+        // On narrow screens, toggle the tapped bar's label
+        if (ssWrap.clientWidth < 500 && ei !== null && ti !== null) {
+            const alreadyTapped = hover.ssBar && hover.ssBar.ei === ei && hover.ssBar.ti === ti;
+            hover.ssBar = alreadyTapped ? null : { ei, ti };
+        } else {
+            hover.ssBar = null;
         }
         hover.ssEff = null;
         redrawAll();
