@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Model prevention trial feasibility for IBD. Explore tradeoffs between predictive model performance, enrollment enrichment, and intervention efficacy.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="CD Trial Designer – IBD Screen">
+    <meta property="og:description" content="Model prevention trial feasibility for IBD.">
+    <meta property="og:image" content="https://ibdscreen.org/preview.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CD Trial Designer – IBD Screen">
+    <meta name="twitter:description" content="Model prevention trial feasibility for IBD.">
+    <meta name="twitter:image" content="https://ibdscreen.org/preview.png">
+
+    <title>Trial Designer – IBD Screen</title>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BF61S16ZC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-7BF61S16ZC');
+    </script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #1a1a2e;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 340px;
+            grid-template-rows: auto 1fr auto;
+            min-height: 100vh;
+            gap: 0;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            padding: 12px 25px;
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .header-dashboard-btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .header-dashboard-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Left sidebar */
+        .param-panel {
+            background: #fff;
+            border-right: 1px solid #e2e8f0;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .panel-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        /* Radio group */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            color: #374151;
+        }
+
+        .radio-option input[type="radio"] {
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+
+        .baseline-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            border-radius: 12px;
+            padding: 3px 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .custom-risk-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .custom-risk-row input[type="number"] {
+            width: 80px;
+            padding: 5px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            color: #1a1a2e;
+        }
+
+        .custom-risk-row input[type="number"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .custom-risk-row span {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Sliders */
+        .slider-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+
+        .slider-row:last-child { margin-bottom: 0; }
+
+        .slider-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slider-label {
+            font-size: 0.8rem;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .slider-value {
+            font-size: 0.8rem;
+            color: #1d4ed8;
+            font-weight: 600;
+            background: #eff6ff;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+
+        /* Efficacy buttons */
+        .efficacy-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .efficacy-btn, .ratio-btn {
+            padding: 7px 4px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 6px;
+            background: #fff;
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+
+        .efficacy-btn:hover, .ratio-btn:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .efficacy-btn.active, .ratio-btn.active {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: #fff;
+        }
+
+
+        /* Center charts */
+        .chart-area {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 16px;
+            background: #f5f7fa;
+            overflow: hidden;
+        }
+
+        .chart-container {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+            min-height: 220px;
+        }
+
+        .chart-container:last-child { margin-bottom: 0; }
+
+        .chart-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .chart-subtitle {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .canvas-wrap {
+            flex: 1;
+            position: relative;
+            min-height: 140px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* Right results panel */
+        .results-panel {
+            background: #fff;
+            border-left: 1px solid #e2e8f0;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .results-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* Metric cards */
+        .metric-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .metric-card {
+            border-radius: 8px;
+            padding: 10px 12px;
+            border: 1px solid transparent;
+        }
+
+        .metric-card.green  { background: #f0fdf4; border-color: #bbf7d0; }
+        .metric-card.blue   { background: #eff6ff; border-color: #bfdbfe; }
+        .metric-card.cyan   { background: #ecfeff; border-color: #a5f3fc; }
+        .metric-card.purple { background: #faf5ff; border-color: #e9d5ff; }
+
+        .metric-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .metric-card.green  .metric-value { color: #16a34a; }
+        .metric-card.blue   .metric-value { color: #1d4ed8; }
+        .metric-card.cyan   .metric-value { color: #0891b2; }
+        .metric-card.purple .metric-value { color: #7c3aed; }
+
+        .metric-sub {
+            font-size: 0.68rem;
+            color: #9ca3af;
+        }
+
+        /* Sub-metrics */
+        .sub-metrics {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+        }
+
+        .sub-metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            font-size: 0.78rem;
+        }
+
+        .sub-metric-row + .sub-metric-row {
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .sub-metric-label { color: #64748b; }
+        .sub-metric-value { color: #1a1a2e; font-weight: 600; }
+
+        /* Feasibility badge */
+        .feasibility-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .feasibility-badge.green  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .feasibility-badge.amber  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .feasibility-badge.red    { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        /* Summary table */
+        .summary-table-wrap {
+            overflow-x: auto;
+        }
+
+        .summary-table-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.72rem;
+        }
+
+        .summary-table th {
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            padding: 5px 6px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .summary-table td {
+            padding: 5px 6px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            cursor: default;
+            transition: background 0.1s;
+        }
+
+        .summary-table td.cell-green  { background: #f0fdf4; color: #15803d; }
+        .summary-table td.cell-amber  { background: #fffbeb; color: #b45309; }
+        .summary-table td.cell-red    { background: #fef2f2; color: #dc2626; }
+        .summary-table td.cell-active { outline: 2px solid #3b82f6; outline-offset: -2px; font-weight: 700; }
+
+        .table-row-label {
+            font-weight: 600;
+            color: #374151;
+            background: #f8fafc;
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        /* Legend */
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.7rem;
+            color: #374151;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-line {
+            width: 18px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        footer {
+            grid-column: 1 / -1;
+            padding: 12px 20px;
+            background: #fff;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        footer a:hover { text-decoration: underline; }
+
+        .pop-preset-btn {
+            padding: 5px 9px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.73rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .pop-preset-btn:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto auto;
+            }
+
+            .param-panel, .results-panel {
+                border-right: none;
+                border-left: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .chart-area { padding: 12px; }
+
+            .metric-cards { grid-template-columns: 1fr 1fr; }
+
+            header h1 { font-size: 1rem; }
+
+            .header-controls { gap: 8px; }
+
+            .header-dashboard-btn { padding: 6px 12px; font-size: 0.75rem; }
+        }
+
+        @media (max-width: 480px) {
+            .metric-cards { grid-template-columns: 1fr; }
+            header { flex-direction: column; gap: 8px; padding: 10px 16px; }
+            .header-controls { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ══════════════════════════════ HEADER ══════════════════════════════ -->
+    <header>
+        <h1>IBD Screen <span style="color:#64748b;">– Trial Designer</span></h1>
+        <div class="header-controls">
+            <a href="index.html" class="header-dashboard-btn" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);">Screening Tool</a>
+        </div>
+    </header>
+
+    <!-- ══════════════════════════════ LEFT: PARAM PANEL ══════════════════════════════ -->
+    <aside class="param-panel">
+
+        <!-- Blurb -->
+        <p style="font-size:0.76rem;color:#64748b;line-height:1.5;margin-bottom:14px;">
+            Sample size calculator for IBD prevention trials. Models how predictive risk stratification enriches trial populations and improves feasibility. See <a href="https://academic.oup.com/ecco-jcc/article/20/Supplement_1/jjaf231.1365/8434017" target="_blank" style="color:#3b82f6;">Sollock et al., ECCO 2026</a>.
+        </p>
+
+        <!-- Population -->
+        <div class="panel-section">
+            <div class="section-title">Population</div>
+            <div class="slider-label-row" style="margin-bottom:6px;">
+                <span class="slider-label">5-yr CD baseline risk</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                <input type="number" id="baseline-risk-input" value="1.0" min="0.001" max="50" step="0.1"
+                       style="width:72px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:5px;font-size:0.82rem;color:#1a1a2e;">
+                <span style="font-size:0.8rem;color:#64748b;">%</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="pop-preset-btn" data-risk="0.11">Population CD (0.11%)</button>
+                <button class="pop-preset-btn" data-risk="1.0">FDR CD (1%)</button>
+            </div>
+        </div>
+
+        <!-- Predictive model -->
+        <div class="panel-section">
+            <div class="section-title">Predictive Model</div>
+            <div class="slider-row">
+                <div class="slider-label-row">
+                    <span class="slider-label">AUC</span>
+                    <span class="slider-value" id="auc-display">0.90</span>
+                </div>
+                <input type="range" id="auc-slider" min="50" max="100" value="90" step="1">
+            </div>
+        </div>
+
+        <!-- Trial statistics -->
+        <div class="panel-section">
+            <div class="section-title">Trial Statistics</div>
+            <div class="slider-row">
+                <div class="slider-label-row">
+                    <span class="slider-label">Trial length</span>
+                    <span class="slider-value" id="years-display">5 yr</span>
+                </div>
+                <input type="range" id="years-slider" min="1" max="15" value="5" step="1">
+            </div>
+            <div class="slider-row">
+                <div class="slider-label-row">
+                    <span class="slider-label">Power</span>
+                    <span class="slider-value" id="power-display">80%</span>
+                </div>
+                <input type="range" id="power-slider" min="0" max="100" value="80" step="1">
+            </div>
+            <div class="slider-row">
+                <div class="slider-label-row">
+                    <span class="slider-label">Alpha (two-sided)</span>
+                    <input type="number" id="alpha-input" value="0.05" min="0.001" max="0.5" step="0.005"
+                           style="width:70px;padding:3px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:0.8rem;color:#1d4ed8;font-weight:600;background:#eff6ff;text-align:center;">
+                </div>
+            </div>
+            <div class="slider-row">
+                <div class="slider-label-row">
+                    <span class="slider-label">Non-recruitment/-completion</span>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        <input type="number" id="dropout-input" value="0" min="0" max="80" step="1"
+                               style="width:55px;padding:3px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:0.8rem;color:#1d4ed8;font-weight:600;background:#eff6ff;text-align:center;">
+                        <span style="font-size:0.8rem;color:#64748b;">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enrollment threshold -->
+        <div class="panel-section">
+            <div class="section-title">Enrollment Threshold</div>
+            <div class="slider-row">
+                <div class="slider-label-row">
+                    <span class="slider-label">Top risk tail</span>
+                    <span class="slider-value" id="tail-display">1%</span>
+                </div>
+                <input type="range" id="tail-slider" min="1" max="10" value="1" step="1">
+            </div>
+        </div>
+
+        <!-- Intervention efficacy -->
+        <div class="panel-section">
+            <div class="section-title">Intervention Efficacy</div>
+            <div class="efficacy-buttons">
+                <button class="efficacy-btn" data-eff="0.25">25%</button>
+                <button class="efficacy-btn" data-eff="0.50">50%</button>
+                <button class="efficacy-btn active" data-eff="0.75">75%</button>
+                <button class="efficacy-btn" data-eff="1.00">100%</button>
+            </div>
+        </div>
+
+        <!-- Randomisation ratio -->
+        <div class="panel-section">
+            <div class="section-title">Randomisation Ratio (control:treatment)</div>
+            <div class="efficacy-buttons">
+                <button class="ratio-btn active" data-ratio="1">1:1</button>
+                <button class="ratio-btn" data-ratio="2">1:2</button>
+                <button class="ratio-btn" data-ratio="3">1:3</button>
+                <button class="ratio-btn" data-ratio="4">1:4</button>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- ══════════════════════════════ CENTER: CHARTS ══════════════════════════════ -->
+    <main class="chart-area">
+
+        <!-- Chart 1: Sample Size -->
+        <div class="chart-container">
+            <div class="chart-title">Required Total Sample Size</div>
+            <div class="chart-subtitle">Grouped by intervention efficacy &mdash; <span id="ss-params"></span></div>
+            <div class="chart-legend" id="ss-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div><span>10%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div><span>5%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div><span>3%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#06b6d4;"></div><span>2%</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div><span>1%</span></div>
+            </div>
+            <div class="canvas-wrap" id="ss-wrap">
+                <canvas id="ss-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Risk Enrichment -->
+        <div class="chart-container">
+            <div class="chart-title">Risk Enrichment by Top Tail Selection</div>
+            <div class="chart-subtitle">Enriched <span id="enrich-subtitle-yr">5</span>-yr IBD risk at each enrollment threshold</div>
+            <div class="chart-legend" id="enrichment-legend">
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#3b82f6;"></div>
+                    <span>General population</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line" style="background:#8b5cf6;"></div>
+                    <span>First-degree relatives</span>
+                </div>
+            </div>
+            <div class="canvas-wrap" id="enrichment-wrap">
+                <canvas id="enrichment-canvas"></canvas>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ══════════════════════════════ RIGHT: RESULTS PANEL ══════════════════════════════ -->
+    <aside class="results-panel">
+
+        <div class="results-title">Current Selection Results</div>
+
+        <!-- 4 metric cards -->
+        <div class="metric-cards">
+            <div class="metric-card green">
+                <div class="metric-label">Enriched Risk</div>
+                <div class="metric-value" id="card-enriched-risk">—</div>
+                <div class="metric-sub"><span id="card-yr-label">5</span>-yr IBD risk</div>
+            </div>
+            <div class="metric-card blue">
+                <div class="metric-label">Total N</div>
+                <div class="metric-value" id="card-n-arm">—</div>
+                <div class="metric-sub">all participants</div>
+            </div>
+            <div class="metric-card cyan">
+                <div class="metric-label">Control Arm</div>
+                <div class="metric-value" id="card-total">—</div>
+                <div class="metric-sub">control participants</div>
+            </div>
+            <div class="metric-card purple">
+                <div class="metric-label">N to Screen</div>
+                <div class="metric-value" id="card-screen">—</div>
+                <div class="metric-sub">need to test</div>
+            </div>
+        </div>
+
+        <!-- Sub-metrics -->
+        <div class="sub-metrics">
+            <div class="sub-metric-row">
+                <span class="sub-metric-label">Enrichment ratio</span>
+                <span class="sub-metric-value" id="sm-ratio">—</span>
+            </div>
+            <div class="sub-metric-row">
+                <span class="sub-metric-label">Sensitivity</span>
+                <span class="sub-metric-value" id="sm-sens">—</span>
+            </div>
+            <div class="sub-metric-row">
+                <span class="sub-metric-label">Specificity</span>
+                <span class="sub-metric-value" id="sm-spec">—</span>
+            </div>
+            <div class="sub-metric-row">
+                <span class="sub-metric-label">p₁ (control arm rate)</span>
+                <span class="sub-metric-value" id="sm-p1">—</span>
+            </div>
+            <div class="sub-metric-row">
+                <span class="sub-metric-label">p₂ (treatment arm rate)</span>
+                <span class="sub-metric-value" id="sm-p2">—</span>
+            </div>
+        </div>
+
+        <!-- Feasibility badge -->
+        <div class="feasibility-badge green" id="feasibility-badge">
+            <span id="feasibility-icon">✓</span>
+            <span id="feasibility-text">Feasible (&lt;10k to screen)</span>
+        </div>
+
+        <!-- Summary table -->
+        <div class="summary-table-wrap">
+            <div class="summary-table-title">Total N — tail% × efficacy (color = N-to-screen)</div>
+            <table class="summary-table" id="summary-table">
+                <thead>
+                    <tr>
+                        <th>Tail</th>
+                        <th>25%</th>
+                        <th>50%</th>
+                        <th>75%</th>
+                        <th>100%</th>
+                    </tr>
+                </thead>
+                <tbody id="summary-tbody">
+                    <!-- Filled by JS -->
+                </tbody>
+            </table>
+        </div>
+
+    </aside>
+
+    <!-- ══════════════════════════════ FOOTER ══════════════════════════════ -->
+    <footer>
+        Made by the Sazonovs Lab, PREDICT, AAU Copenhagen
+    </footer>
+
+</div><!-- /.app-container -->
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// Math helpers (verbatim from index.html)
+// ══════════════════════════════════════════════════════════════════
+
+function normalCDF(x) {
+    const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+    const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+    const sign = x < 0 ? -1 : 1;
+    const absX = Math.abs(x) / Math.sqrt(2);
+    const t = 1.0 / (1.0 + p * absX);
+    const erf = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-absX * absX);
+    return 0.5 * (1.0 + sign * erf);
+}
+
+function normalInvCDF(p) {
+    if (p <= 0) return -Infinity;
+    if (p >= 1) return Infinity;
+    const a = [-3.969683028665376e+01,  2.209460984245205e+02, -2.759285104469687e+02,
+                1.383577518672690e+02, -3.066479806614716e+01,  2.506628277459239e+00];
+    const b = [-5.447609879822406e+01,  1.615858368580409e+02, -1.556989798598866e+02,
+                6.680131188771972e+01, -1.328068155288572e+01];
+    const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+               -2.549732539343734e+00,  4.374664141464968e+00,  2.938163982698783e+00];
+    const d = [ 7.784695709041462e-03,  3.224671290700398e-01,  2.445134137142996e+00,
+                3.754408661907416e+00];
+    const plow = 0.02425, phigh = 1 - plow;
+    if (p < plow) {
+        const q = Math.sqrt(-2 * Math.log(p));
+        return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+               ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+    }
+    if (p <= phigh) {
+        const q = p - 0.5, r = q * q;
+        return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
+               (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+    }
+    const q = Math.sqrt(-2 * Math.log(1 - p));
+    return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+             ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+}
+
+function dPrimeFromAuc(auc) {
+    const a = Math.min(0.999999, Math.max(0.500001, auc));
+    return Math.sqrt(2) * normalInvCDF(a);
+}
+
+function mixtureTailMass(t, pi, dPrime) {
+    const tpr = 1 - normalCDF(t - dPrime);
+    const fpr = 1 - normalCDF(t);
+    return pi * tpr + (1 - pi) * fpr;
+}
+
+function findThresholdForTopQ(q, pi, dPrime) {
+    if (q <= 0) return Infinity;
+    if (q >= 1) return -Infinity;
+    let lo = -10, hi = 10;
+    for (let i = 0; i < 64; i++) {
+        const mid = (lo + hi) / 2;
+        if (mixtureTailMass(mid, pi, dPrime) > q) lo = mid;
+        else hi = mid;
+    }
+    return 0.5 * (lo + hi);
+}
+
+function calculateSensSpec(auc, pi, q) {
+    const a = Math.min(0.999999, Math.max(0.500001, auc));
+    const p = Math.min(0.999999, Math.max(0.000001, pi));
+    const qq = Math.min(1, Math.max(0, q));
+    if (qq <= 0) return { sensitivity: 0, specificity: 1, fpr: 0, threshold: Infinity, q: qq };
+    if (qq >= 1) return { sensitivity: 1, specificity: 0, fpr: 1, threshold: -Infinity, q: qq };
+    const dPrime = dPrimeFromAuc(a);
+    const t = findThresholdForTopQ(qq, p, dPrime);
+    const sensitivity = 1 - normalCDF(t - dPrime);
+    const fpr = 1 - normalCDF(t);
+    const specificity = 1 - fpr;
+    return { sensitivity, specificity, fpr, threshold: t, q: qq };
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Trial-specific math
+// ══════════════════════════════════════════════════════════════════
+
+// Annual CD incidence rates per year
+// Population ~22/100k/yr; FDR ~10×
+const ANNUAL_RATES = { general: 0.00022, fdr: 0.0020 };
+
+function computeEnrichment(basePrev, auc, topXFrac) {
+    const q = Math.min(0.999, Math.max(0.001, topXFrac));
+    const { sensitivity, specificity } = calculateSensSpec(auc, basePrev, q);
+    const enrichedPrev = basePrev * sensitivity / q;
+    const enrichmentRatio = enrichedPrev / basePrev;
+    return { enrichedPrev, sensitivity, specificity, enrichmentRatio };
+}
+
+// r = treatment/control allocation multiplier implied by displayed control:treatment ratio
+// e.g. UI "1:2" => r = 2 (twice as many in treatment as control)
+function computeSampleSizeArms(p1, p2, power, alpha, r = 1) {
+    if (p1 <= 0 || p2 < 0 || p1 <= p2 || r <= 0) {
+        return { nCtrl: Infinity, nTreat: Infinity, nTotal: Infinity };
+    }
+
+    const z_alpha = normalInvCDF(1 - alpha / 2);
+    const z_beta  = normalInvCDF(Math.min(0.9999, Math.max(0.0001, power)));
+
+    // Normal approximation for two independent proportions with unequal allocation
+    const nCtrl = Math.ceil(
+        Math.pow(z_alpha + z_beta, 2) *
+        (p1 * (1 - p1) + (p2 * (1 - p2)) / r) /
+        Math.pow(p1 - p2, 2)
+    );
+
+    const nTreat = Math.ceil(r * nCtrl);
+    return { nCtrl, nTreat, nTotal: nCtrl + nTreat };
+}
+
+// Backward-compatible wrapper if other code still expects total N
+function computeSampleSize(p1, p2, power, alpha, r = 1) {
+    return computeSampleSizeArms(p1, p2, power, alpha, r).nTotal;
+}
+
+function inflateArmsForDropout(nCtrl, nTreat, dropout) {
+    if (!isFinite(nCtrl) || !isFinite(nTreat)) {
+        return { nCtrl: Infinity, nTreat: Infinity, nTotal: Infinity };
+    }
+    if (dropout >= 1) {
+        return { nCtrl: Infinity, nTreat: Infinity, nTotal: Infinity };
+    }
+    const inflate = 1 / (1 - Math.max(0, dropout));
+    const nCtrlInfl  = Math.ceil(nCtrl * inflate);
+    const nTreatInfl = Math.ceil(nTreat * inflate);
+    return { nCtrl: nCtrlInfl, nTreat: nTreatInfl, nTotal: nCtrlInfl + nTreatInfl };
+}
+
+// Useful for deciding whether continuity correction / exact methods are worth checking
+function minExpected2x2CellCount(nCtrl, nTreat, p1, p2) {
+    if (![nCtrl, nTreat, p1, p2].every(Number.isFinite)) return Infinity;
+    const cells = [
+        nCtrl * p1,          // control events
+        nCtrl * (1 - p1),    // control non-events
+        nTreat * p2,         // treatment events
+        nTreat * (1 - p2)    // treatment non-events
+    ];
+    return Math.min(...cells);
+}
+
+function computeNToScreen(nTotal, topXFrac) {
+    if (!isFinite(nTotal) || topXFrac <= 0) return Infinity;
+    return Math.ceil(nTotal / topXFrac);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// State
+// ══════════════════════════════════════════════════════════════════
+
+// Ephemeral hover state (not app state — just for chart rendering)
+const hover = { enrichX: null, ssEff: null };
+
+const state = {
+    baselineRisk: 0.01,        // fraction — the 5-yr CD baseline risk for the enrolled population
+    auc: 0.90,
+    power: 0.80,
+    alpha: 0.05,
+    tail: 0.01,                // fraction (top X%)
+    efficacy: 0.75,
+    trialYears: 5,
+    randRatio: 1,              // treatment/control multiplier (UI displays control:treatment as 1:r)
+    dropout: 0,                // fraction (0 = no dropout, 0.2 = 20% dropout)
+};
+
+// state.baselineRisk is the 5-yr reference risk; scale for actual trial length
+function getBasePrev() {
+    return 1 - Math.pow(1 - Math.min(0.999, state.baselineRisk), state.trialYears / 5);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UI helpers
+// ══════════════════════════════════════════════════════════════════
+
+function fmtPct(v, decimals = 2) {
+    return (v * 100).toFixed(decimals) + '%';
+}
+
+function fmtNum(n) {
+    if (!isFinite(n)) return '∞';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'k';
+    return n.toLocaleString();
+}
+
+function fmtBar(n) {
+    if (!isFinite(n)) return '∞';
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return Math.round(n / 1e3) + 'k';
+    return Math.round(n).toString();
+}
+
+function fmtNumExact(n) {
+    if (!isFinite(n)) return '∞';
+    return n.toLocaleString();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Update results panel
+// ══════════════════════════════════════════════════════════════════
+
+function updateResults() {
+    const basePrev = getBasePrev();
+    const { enrichedPrev, sensitivity, specificity, enrichmentRatio } = computeEnrichment(basePrev, state.auc, state.tail);
+    const p1 = enrichedPrev;
+    const p2 = p1 * (1 - state.efficacy);
+    const r  = state.randRatio;
+
+    const ssRaw = computeSampleSizeArms(p1, p2, state.power, state.alpha, r);
+    const ss    = inflateArmsForDropout(ssRaw.nCtrl, ssRaw.nTreat, state.dropout);
+
+    const nTotal = ss.nTotal;
+    const nCtrl  = ss.nCtrl;
+    const nTreat = ss.nTreat; // currently not displayed, but useful for checks
+    const nScreen = computeNToScreen(nTotal, state.tail);
+
+    // Yates/exact-method caution hook for small expected counts
+    const minCell = minExpected2x2CellCount(nCtrl, nTreat, p1, p2);
+
+    // Cards
+    document.getElementById('card-enriched-risk').textContent = fmtPct(enrichedPrev, 2);
+    document.getElementById('card-n-arm').textContent    = fmtNum(nTotal);
+    document.getElementById('card-total').textContent    = fmtNum(nCtrl);
+    document.getElementById('card-screen').textContent   = fmtNum(nScreen);
+
+    // Sub-metrics
+    document.getElementById('sm-ratio').textContent = enrichmentRatio.toFixed(1) + '×';
+    document.getElementById('sm-sens').textContent  = fmtPct(sensitivity);
+    document.getElementById('sm-spec').textContent  = fmtPct(specificity);
+    document.getElementById('sm-p1').textContent    = fmtPct(p1, 3);
+    document.getElementById('sm-p2').textContent    = fmtPct(p2, 3);
+
+    // Feasibility badge
+    const badge = document.getElementById('feasibility-badge');
+    const icon  = document.getElementById('feasibility-icon');
+    const text  = document.getElementById('feasibility-text');
+    badge.className = 'feasibility-badge';
+    if (!isFinite(nScreen) || nScreen > 50000) {
+        badge.classList.add('red');
+        icon.textContent = '✗';
+        text.textContent = `Challenging (${isFinite(nScreen) ? fmtNum(nScreen) : '∞'} to screen)`;
+    } else if (nScreen > 10000) {
+        badge.classList.add('amber');
+        icon.textContent = '⚠';
+        text.textContent = `Moderate (${fmtNum(nScreen)} to screen)`;
+    } else {
+        badge.classList.add('green');
+        icon.textContent = '✓';
+        text.textContent = `Feasible (${fmtNum(nScreen)} to screen)`;
+    }
+
+    badge.title = (isFinite(minCell) && minCell < 5)
+        ? 'Low expected 2×2 cell count (<5): normal approximation may be optimistic; check Yates/exact/simulation.'
+        : '';
+
+    // Chart caption parameters
+    const dropoutNote = state.dropout > 0 ? ', non-recruitment/-completion ' + Math.round(state.dropout * 100) + '%' : '';
+    document.getElementById('ss-params').textContent =
+        'power ' + (state.power * 100).toFixed(0) + '%, α ' + state.alpha +
+        ', ratio 1:' + state.randRatio + dropoutNote;
+
+    // Year labels
+    document.getElementById('enrich-subtitle-yr').textContent = state.trialYears;
+    document.getElementById('card-yr-label').textContent      = state.trialYears;
+
+    // Summary table
+    buildSummaryTable(basePrev);
+}
+
+function buildSummaryTable(basePrev) {
+    const tails  = [0.01, 0.03, 0.05, 0.10];
+    const effs   = [0.25, 0.50, 0.75, 1.00];
+    const tbody  = document.getElementById('summary-tbody');
+    tbody.innerHTML = '';
+
+    tails.forEach(tail => {
+        const tr = document.createElement('tr');
+        const tdLabel = document.createElement('td');
+        tdLabel.className = 'table-row-label';
+        tdLabel.textContent = (tail * 100).toFixed(0) + '%';
+        tr.appendChild(tdLabel);
+
+        effs.forEach(eff => {
+            const { enrichedPrev } = computeEnrichment(basePrev, state.auc, tail);
+            const p1 = enrichedPrev;
+            const p2 = p1 * (1 - eff);
+            const ssRaw = computeSampleSizeArms(p1, p2, state.power, state.alpha, state.randRatio);
+            const ss    = inflateArmsForDropout(ssRaw.nCtrl, ssRaw.nTreat, state.dropout);
+            const n     = ss.nTotal;
+            const nS    = computeNToScreen(n, tail);
+
+            const td = document.createElement('td');
+            td.textContent = fmtNum(n);
+
+            // Color by N-to-screen
+            if (!isFinite(nS) || nS > 50000) {
+                td.classList.add('cell-red');
+            } else if (nS > 10000) {
+                td.classList.add('cell-amber');
+            } else {
+                td.classList.add('cell-green');
+            }
+
+            // Highlight selected cell
+            const tailMatch = Math.abs(tail - state.tail) < 0.001;
+            const effMatch  = Math.abs(eff - state.efficacy) < 0.001;
+            if (tailMatch && effMatch) td.classList.add('cell-active');
+
+            tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Canvas helpers
+// ══════════════════════════════════════════════════════════════════
+
+function initCanvas(canvasId, wrapId, drawFn) {
+    const wrap   = document.getElementById(wrapId);
+    const canvas = document.getElementById(canvasId);
+
+    function draw() {
+        const w = wrap.clientWidth;
+        const h = wrap.clientHeight;
+        if (w < 10 || h < 10) { setTimeout(draw, 50); return; }
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width  = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width  = w + 'px';
+        canvas.style.height = h + 'px';
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        drawFn(ctx, w, h);
+    }
+
+    const ro = new ResizeObserver(() => draw());
+    ro.observe(wrap);
+    setTimeout(draw, 50);
+    return draw;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Chart 1: Risk Enrichment
+// ══════════════════════════════════════════════════════════════════
+
+function drawEnrichmentChart(ctx, w, h) {
+    const pad = { top: 30, right: 20, bottom: 50, left: 60 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+
+    const xVals = [];
+    for (let i = 1; i <= 10; i++) xVals.push(i / 100);  // 1% .. 10%
+
+    const popTypes = [
+        { key: 'general', color: '#3b82f6', label: 'General pop' },
+        { key: 'fdr',     color: '#8b5cf6', label: 'FDR' },
+    ];
+
+    // Compute y-values for all lines
+    const lines = popTypes.map(pt => ({
+        ...pt,
+        ys: xVals.map(x => {
+            const base = 1 - Math.exp(-ANNUAL_RATES[pt.key] * state.trialYears);
+            const { enrichedPrev } = computeEnrichment(base, state.auc, x);
+            return enrichedPrev * 100; // → percent
+        }),
+    }));
+
+    const allYs  = lines.flatMap(l => l.ys).filter(isFinite);
+    const yMin   = 0;
+    const yMax   = Math.max(...allYs) * 1.15 || 0.1;
+
+    function xPx(frac) { return pad.left + (frac - 0.01) / 0.09 * cw; }
+    function yPx(pct)  { return pad.top  + (1 - (pct - yMin) / (yMax - yMin)) * ch; }
+
+    // Grid
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    const nGridY = 4;
+    for (let i = 0; i <= nGridY; i++) {
+        const y = pad.top + (ch / nGridY) * i;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+        const val = yMax - (yMax - yMin) * i / nGridY;
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px -apple-system, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(val.toFixed(2) + '%', pad.left - 6, y + 3);
+    }
+    ctx.setLineDash([]);
+
+    // X grid & labels
+    xVals.forEach((x, i) => {
+        const px = xPx(x);
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        if (i > 0) { ctx.beginPath(); ctx.moveTo(px, pad.top); ctx.lineTo(px, pad.top + ch); ctx.stroke(); }
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText((x * 100).toFixed(0) + '%', px, pad.top + ch + 16);
+    });
+
+    // Axes labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Top tail enrolled (%)', pad.left + cw / 2, h - 6);
+
+    ctx.save();
+    ctx.translate(12, pad.top + ch / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(`Enriched ${state.trialYears}-yr risk (%)`, 0, 0);
+    ctx.restore();
+
+    // Lines
+    lines.forEach(line => {
+        ctx.strokeStyle = line.color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        line.ys.forEach((y, i) => {
+            const px = xPx(xVals[i]);
+            const py = yPx(y);
+            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+    });
+
+    // Highlight dots at current tail
+    const currentX = state.tail;
+    lines.forEach(line => {
+        const idx = Math.round(currentX * 100) - 1;  // 1%=0 .. 10%=9
+        const clampedIdx = Math.min(9, Math.max(0, idx));
+        const hy = line.ys[clampedIdx];
+        if (!isFinite(hy)) return;
+        const px = xPx(currentX);
+        const py = yPx(hy);
+        ctx.beginPath();
+        ctx.arc(px, py, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = line.color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Value label
+        ctx.fillStyle = line.color;
+        ctx.font = 'bold 10px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        const labelX = px + 8;
+        const labelY = py - 6;
+        ctx.fillText(hy.toFixed(2) + '%', labelX, labelY);
+    });
+
+    // Chart title at top
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('AUC = ' + state.auc.toFixed(2), pad.left, pad.top - 10);
+
+    // ── Hover crosshair + tooltip ──────────────────────────────────
+    if (hover.enrichX !== null) {
+        const hx    = hover.enrichX;
+        const hpx   = xPx(hx);
+        const idx   = Math.min(9, Math.max(0, Math.round(hx * 100) - 1));
+
+        // Vertical crosshair
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(hpx, pad.top); ctx.lineTo(hpx, pad.top + ch); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Dots on each line + collect tooltip rows
+        const rows = [{ text: `Tail: ${(hx * 100).toFixed(0)}%`, color: '#374151', bold: true }];
+        lines.forEach(line => {
+            const hy = line.ys[idx];
+            if (!isFinite(hy)) return;
+            ctx.beginPath();
+            ctx.arc(hpx, yPx(hy), 4, 0, 2 * Math.PI);
+            ctx.fillStyle = line.color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            rows.push({ text: `${line.key === 'general' ? 'Gen pop' : 'FDR'}: ${hy.toFixed(2)}%`, color: line.color, bold: false });
+        });
+
+        // Tooltip box
+        const ttW = 118, lineH = 14, ttH = rows.length * lineH + 10;
+        let ttX = hpx + 9;
+        const ttY = pad.top + 8;
+        if (ttX + ttW > w - pad.right) ttX = hpx - ttW - 9;
+        ctx.fillStyle = 'rgba(255,255,255,0.96)';
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.rect(ttX, ttY, ttW, ttH); ctx.fill(); ctx.stroke();
+        rows.forEach((row, i) => {
+            ctx.fillStyle = row.color;
+            ctx.font = (row.bold ? 'bold ' : '') + '10px -apple-system, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(row.text, ttX + 7, ttY + lineH * i + lineH - 1);
+        });
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Chart 2: N per arm — grouped by efficacy, linear scale
+// ══════════════════════════════════════════════════════════════════
+
+// Representative tail% values shown as bars within each efficacy group
+const SS_TAILS = [
+    { v: 0.10, color: '#ef4444', label: '10%' },
+    { v: 0.05, color: '#f59e0b', label: '5%'  },
+    { v: 0.03, color: '#10b981', label: '3%'  },
+    { v: 0.02, color: '#06b6d4', label: '2%'  },
+    { v: 0.01, color: '#3b82f6', label: '1%'  },
+];
+
+const SS_EFFS = [
+    { eff: 0.25, label: '25%'  },
+    { eff: 0.50, label: '50%'  },
+    { eff: 0.75, label: '75%'  },
+    { eff: 1.00, label: '100%' },
+];
+
+function niceTickSpacing(range, targetTicks) {
+    const rough = range / targetTicks;
+    const exp   = Math.pow(10, Math.floor(Math.log10(rough)));
+    const f     = rough / exp;
+    const nice  = f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10;
+    return nice * exp;
+}
+
+function drawSSChart(ctx, w, h) {
+    const pad     = { top: 30, right: 20, bottom: 50, left: 70 };
+    const cw      = w - pad.left - pad.right;
+    const ch      = h - pad.top - pad.bottom;
+    const bottomY = pad.top + ch;
+
+    const nGroups = SS_EFFS.length;
+    const groupW  = cw / nGroups;
+    const gPad    = Math.max(2, groupW * 0.12);
+    const nBars   = SS_TAILS.length;
+    const barGap  = 1.5;
+    const barW    = Math.max(2, (groupW - 2 * gPad - (nBars - 1) * barGap) / nBars);
+
+    const basePrev = getBasePrev();
+
+    // data[effIdx][tailIdx] = Total N (dropout-inflated)
+    const data = SS_EFFS.map(e =>
+        SS_TAILS.map(t => {
+            const { enrichedPrev } = computeEnrichment(basePrev, state.auc, t.v);
+            const p1 = enrichedPrev;
+            const p2 = enrichedPrev * (1 - e.eff);
+            const ssRaw = computeSampleSizeArms(p1, p2, state.power, state.alpha, state.randRatio);
+            const ss    = inflateArmsForDropout(ssRaw.nCtrl, ssRaw.nTreat, state.dropout);
+            return ss.nTotal;
+        })
+    );
+
+    const allFinite = data.flat().filter(isFinite).filter(v => v > 0);
+    if (allFinite.length === 0) {
+        ctx.fillStyle = '#94a3b8'; ctx.font = '12px -apple-system, sans-serif';
+        ctx.textAlign = 'center'; ctx.fillText('No valid data', w / 2, h / 2);
+        return;
+    }
+
+    const dataMax    = Math.max(...allFinite);
+    const tickSpan   = niceTickSpacing(dataMax, 4);
+    const yMax       = Math.ceil(dataMax / tickSpan) * tickSpan;
+
+    function yPx(n) {
+        if (!isFinite(n) || n <= 0) return bottomY;
+        return pad.top + (1 - Math.min(n, yMax) / yMax) * ch;
+    }
+
+    // ── Y gridlines (linear) ────────────────────────────────────────
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+    for (let tick = 0; tick <= yMax + tickSpan * 0.01; tick += tickSpan) {
+        const y = yPx(tick);
+        if (y < pad.top - 1 || y > bottomY + 1) continue;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+        const lbl = tick >= 1e6 ? (tick/1e6).toFixed(1)+'M' : tick >= 1e3 ? (tick/1e3).toFixed(0)+'k' : tick.toString();
+        ctx.fillStyle = '#94a3b8'; ctx.font = '10px -apple-system, sans-serif';
+        ctx.textAlign = 'right'; ctx.fillText(lbl, pad.left - 6, y + 3);
+    }
+    ctx.setLineDash([]);
+
+    // Bottom axis
+    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.left, bottomY); ctx.lineTo(pad.left + cw, bottomY); ctx.stroke();
+
+    // ── Grouped bars (group = efficacy, bar = tail%) ───────────────
+    SS_EFFS.forEach((e, ei) => {
+        const groupX = pad.left + ei * groupW;
+        const isSel  = Math.abs(e.eff - state.efficacy) < 0.001;
+        const isHov  = hover.ssEff !== null && Math.abs(e.eff - hover.ssEff) < 0.001;
+
+        if (isSel) {
+            ctx.fillStyle = 'rgba(59,130,246,0.07)';
+            ctx.fillRect(groupX + 1, pad.top, groupW - 2, ch);
+        } else if (isHov) {
+            ctx.fillStyle = 'rgba(100,116,139,0.05)';
+            ctx.fillRect(groupX + 1, pad.top, groupW - 2, ch);
+        }
+
+        SS_TAILS.forEach((t, ti) => {
+            const n    = data[ei][ti];
+            const barX = groupX + gPad + ti * (barW + barGap);
+            const top  = yPx(n);
+            const barH = Math.max(0, bottomY - top);
+            const isCurTail = Math.abs(t.v - state.tail) < 0.005;
+
+            ctx.globalAlpha = isCurTail ? 1.0 : 0.30;
+            ctx.fillStyle   = t.color;
+            ctx.fillRect(barX, top, barW, barH);
+
+            // Value label above bar
+            if (barH > 0 && isFinite(n)) {
+                ctx.fillStyle    = '#111827';
+                ctx.font         = '12px -apple-system, sans-serif';
+                ctx.textBaseline = 'bottom';
+                ctx.textAlign    = 'center';
+                ctx.fillText(fmtBar(n), barX + barW / 2, top - 1);
+            }
+            ctx.globalAlpha = 1.0;
+
+            // Highlight: selected efficacy group + current tail bar → outline
+            if (isSel && isCurTail && barH > 0) {
+                ctx.strokeStyle = '#1e3a8a';
+                ctx.lineWidth   = 1.5;
+                ctx.strokeRect(barX, top, barW, barH);
+            }
+        });
+
+        // X label
+        ctx.fillStyle = isSel ? '#1d4ed8' : '#94a3b8';
+        ctx.font      = (isSel ? 'bold ' : '') + '11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(e.label, groupX + groupW / 2, bottomY + 16);
+    });
+
+    // Axes labels
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = '#64748b'; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Intervention efficacy', pad.left + cw / 2, h - 6);
+    ctx.save(); ctx.translate(12, pad.top + ch / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Total N', 0, 0); ctx.restore();
+
+
+    // ── Hover tooltip ──────────────────────────────────────────────
+    if (hover.ssEff !== null) {
+        const ei = SS_EFFS.findIndex(e => Math.abs(e.eff - hover.ssEff) < 0.001);
+        if (ei >= 0) {
+            const ns     = data[ei];
+            const groupX = pad.left + ei * groupW;
+            const rows   = [
+                { text: `${SS_EFFS[ei].label} efficacy`, color: '#374151', bold: true },
+                ...SS_TAILS.map((t, ti) => ({ text: `Top ${t.label}: ${fmtNum(ns[ti])}`, color: t.color, bold: false })),
+            ];
+            const ttW = 130, lineH = 14, ttH = rows.length * lineH + 10;
+            let ttX = groupX + groupW + 4;
+            const ttY = pad.top + 8;
+            if (ttX + ttW > w - pad.right) ttX = groupX - ttW - 4;
+            ctx.fillStyle = 'rgba(255,255,255,0.96)'; ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.rect(ttX, ttY, ttW, ttH); ctx.fill(); ctx.stroke();
+            rows.forEach((row, i) => {
+                ctx.fillStyle = row.color;
+                ctx.font = (row.bold ? 'bold ' : '') + '10px -apple-system, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(row.text, ttX + 8, ttY + lineH * i + lineH - 1);
+            });
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Full redraw
+// ══════════════════════════════════════════════════════════════════
+
+let drawEnrichment, drawSS;
+
+function redrawAll() {
+    updateResults();
+    if (drawEnrichment) drawEnrichment();
+    if (drawSS)         drawSS();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Wire up controls
+// ══════════════════════════════════════════════════════════════════
+
+function wireControls() {
+    // Baseline risk input
+    document.getElementById('baseline-risk-input').addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        if (!isNaN(v) && v > 0) { state.baselineRisk = v / 100; redrawAll(); }
+    });
+
+    // Population preset buttons
+    document.querySelectorAll('.pop-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const v = parseFloat(btn.dataset.risk);
+            state.baselineRisk = v / 100;
+            document.getElementById('baseline-risk-input').value = v;
+            redrawAll();
+        });
+    });
+
+    // Trial years slider
+    const yearsSlider = document.getElementById('years-slider');
+    const yearsDisplay = document.getElementById('years-display');
+    yearsSlider.addEventListener('input', () => {
+        state.trialYears = parseInt(yearsSlider.value);
+        yearsDisplay.textContent = state.trialYears + ' yr';
+        redrawAll();
+    });
+
+    // AUC slider
+    const aucSlider = document.getElementById('auc-slider');
+    const aucDisplay = document.getElementById('auc-display');
+    aucSlider.addEventListener('input', () => {
+        state.auc = parseInt(aucSlider.value) / 100;
+        aucDisplay.textContent = state.auc.toFixed(2);
+        redrawAll();
+    });
+
+    // Power slider
+    const powerSlider = document.getElementById('power-slider');
+    const powerDisplay = document.getElementById('power-display');
+    powerSlider.addEventListener('input', () => {
+        state.power = parseInt(powerSlider.value) / 100;
+        powerDisplay.textContent = (state.power * 100).toFixed(0) + '%';
+        redrawAll();
+    });
+
+    // Alpha input
+    document.getElementById('alpha-input').addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        if (!isNaN(v) && v > 0 && v < 1) { state.alpha = v; redrawAll(); }
+    });
+
+    // Dropout input
+    document.getElementById('dropout-input').addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        if (!isNaN(v) && v >= 0 && v < 100) { state.dropout = v / 100; redrawAll(); }
+    });
+
+    // Tail slider
+    const tailSlider = document.getElementById('tail-slider');
+    const tailDisplay = document.getElementById('tail-display');
+    tailSlider.addEventListener('input', () => {
+        state.tail = parseInt(tailSlider.value) / 100;
+        tailDisplay.textContent = (state.tail * 100).toFixed(0) + '%';
+        redrawAll();
+    });
+
+    // Efficacy buttons
+    document.querySelectorAll('.efficacy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.efficacy = parseFloat(btn.dataset.eff);
+            document.querySelectorAll('.efficacy-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            redrawAll();
+        });
+    });
+
+    // Randomisation ratio buttons
+    document.querySelectorAll('.ratio-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.randRatio = parseInt(btn.dataset.ratio);
+            document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            redrawAll();
+        });
+    });
+
+}
+
+function syncUIToState() {
+    document.getElementById('baseline-risk-input').value = +(state.baselineRisk * 100).toPrecision(4);
+
+    // Sliders
+    document.getElementById('years-slider').value = state.trialYears;
+    document.getElementById('years-display').textContent = state.trialYears + ' yr';
+
+    document.getElementById('auc-slider').value  = Math.round(state.auc * 100);
+    document.getElementById('auc-display').textContent = state.auc.toFixed(2);
+
+    document.getElementById('power-slider').value = Math.round(state.power * 100);
+    document.getElementById('power-display').textContent = (state.power * 100).toFixed(0) + '%';
+
+    document.getElementById('alpha-input').value = state.alpha;
+    document.getElementById('dropout-input').value = Math.round(state.dropout * 100);
+
+    document.getElementById('tail-slider').value  = Math.round(state.tail * 100);
+    document.getElementById('tail-display').textContent  = (state.tail * 100).toFixed(0) + '%';
+
+    // Efficacy buttons
+    document.querySelectorAll('.efficacy-btn').forEach(btn => {
+        btn.classList.toggle('active', Math.abs(parseFloat(btn.dataset.eff) - state.efficacy) < 0.001);
+    });
+
+    // Ratio buttons
+    document.querySelectorAll('.ratio-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.ratio) === state.randRatio);
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Init
+// ══════════════════════════════════════════════════════════════════
+
+window.addEventListener('DOMContentLoaded', () => {
+    wireControls();
+
+    drawEnrichment = initCanvas('enrichment-canvas', 'enrichment-wrap', drawEnrichmentChart);
+    drawSS         = initCanvas('ss-canvas',         'ss-wrap',         drawSSChart);
+
+    // ── Enrichment chart interaction ───────────────────────────────
+    const enrichCanvas = document.getElementById('enrichment-canvas');
+    const enrichWrap   = document.getElementById('enrichment-wrap');
+
+    function enrichTailFromEvent(e) {
+        const rect = enrichCanvas.getBoundingClientRect();
+        const x  = e.clientX - rect.left;
+        const cw = enrichWrap.clientWidth - 60 - 20; // padL=60 padR=20
+        const raw = 0.01 + Math.max(0, Math.min(cw, x - 60)) / cw * 0.09;
+        return Math.min(0.10, Math.max(0.01, Math.round(raw * 100) / 100));
+    }
+
+    enrichCanvas.addEventListener('mousemove', e => {
+        hover.enrichX = enrichTailFromEvent(e);
+        drawEnrichment();
+    });
+    enrichCanvas.addEventListener('mouseleave', () => {
+        hover.enrichX = null;
+        drawEnrichment();
+    });
+    enrichCanvas.addEventListener('click', e => {
+        const t = enrichTailFromEvent(e);
+        state.tail = t;
+        document.getElementById('tail-slider').value = Math.round(t * 100);
+        document.getElementById('tail-display').textContent = Math.round(t * 100) + '%';
+        hover.enrichX = null;
+        redrawAll();
+    });
+
+    // ── SS bar chart interaction ────────────────────────────────────
+    const ssCanvas = document.getElementById('ss-canvas');
+    const ssWrap   = document.getElementById('ss-wrap');
+    ssCanvas.style.cursor = 'pointer';
+
+    function ssGroupFromEvent(ev) {
+        // Returns { eff, tailV } for the bar under the cursor, or nulls
+        const rect   = ssCanvas.getBoundingClientRect();
+        const x      = ev.clientX - rect.left;
+        const cw     = ssWrap.clientWidth - 70 - 20;
+        const groupW = cw / SS_EFFS.length;
+        const ei     = Math.floor((x - 70) / groupW);
+        if (ei < 0 || ei >= SS_EFFS.length) return { eff: null, tailV: null };
+        const eff    = SS_EFFS[ei].eff;
+        const gPad   = Math.max(2, groupW * 0.12);
+        const barW   = Math.max(2, (groupW - 2 * gPad - (SS_TAILS.length - 1) * 1.5) / SS_TAILS.length);
+        const localX = (x - 70) - ei * groupW - gPad;
+        const bi     = Math.floor(localX / (barW + 1.5));
+        const tailV  = SS_TAILS[bi]?.v ?? null;
+        return { eff, tailV };
+    }
+
+    ssCanvas.addEventListener('mousemove', ev => {
+        const { eff } = ssGroupFromEvent(ev);
+        hover.ssEff = eff;
+        drawSS();
+    });
+    ssCanvas.addEventListener('mouseleave', () => {
+        hover.ssEff = null;
+        drawSS();
+    });
+    ssCanvas.addEventListener('click', ev => {
+        const { eff, tailV } = ssGroupFromEvent(ev);
+        if (eff !== null) {
+            state.efficacy = eff;
+            document.querySelectorAll('.efficacy-btn').forEach(btn =>
+                btn.classList.toggle('active', Math.abs(parseFloat(btn.dataset.eff) - eff) < 0.001)
+            );
+        }
+        if (tailV !== null) {
+            state.tail = tailV;
+            document.getElementById('tail-slider').value = Math.round(tailV * 100);
+            document.getElementById('tail-display').textContent = Math.round(tailV * 100) + '%';
+        }
+        hover.ssEff = null;
+        redrawAll();
+    });
+
+    redrawAll();
+});
+</script>
+</body>
+</html>
